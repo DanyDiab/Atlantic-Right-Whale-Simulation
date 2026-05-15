@@ -3,35 +3,77 @@ using System.Collections.Generic;
 using BitMiracle.LibTiff.Classic;
 using System.IO;
 using System;
+using System.Linq;
+using Newtonsoft.Json;
 
 public class BathymetryReader : MonoBehaviour {
 
-    string dir;
+    string readingDir;
+    string writingDir;
 
     int width, height;
-    List<float> luminances;
+    List<float> depths;
 
     [SerializeField] float maxDepth = -10000;
 
     [SerializeField] float seaLevel = 0;
     public void Start() {
-        luminances = new List<float>(1000000);
+        depths = new List<float>(1000000);
         width = 10;
         height = 10;
-        dir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
-        readTiff(Path.Combine(dir, "NONNA10_4680N06110W.tiff"));
-
-        int seaLevelCount = 0;
-        for(int i = 0; i < luminances.Count; i++){
-            float currElem = luminances[i];
-            if(Mathf.Approximately(currElem,0.0f)){
-                seaLevelCount++;
-                continue;
-            }
-            Debug.Log(luminances[i]);
-        }
-        Debug.Log(seaLevelCount + " Sea Level Points (> 0)");
+        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
+        writingDir = Path.Combine(Application.dataPath, "Data");
+        readInAllTiffs(readingDir, writingDir);
     }
+
+
+    private void writeDepthsToBinary(string filePath) {
+        
+        if (string.IsNullOrEmpty(filePath)) {
+            return;
+        }
+
+
+        using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
+            using (BinaryWriter writer = new BinaryWriter(fs)) {
+                writer.Write(depths.Count);
+                
+                foreach (float depth in depths) {
+                    writer.Write(depth);
+                }
+            }
+        }
+    }
+    private void readInAllTiffs(string readingDir, string writingDir){
+        
+        if(!Directory.Exists(readingDir)){
+            Debug.Log("The directory chosen is probably wrong: " + readingDir);
+            return;
+        }
+        string[] searchPatterns = new string[] {"*.bytes"};
+
+        IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(readingDir, pattern));
+        foreach(string file in files){
+            readTiff(Path.Combine(readingDir, file));
+            string[] fileSplit = file.Split("/");
+            string path = Path.Combine(writingDir, fileSplit[fileSplit.Length - 1]);
+            writeDepthsToBinary(path);
+            depths.Clear();
+        }
+
+        // int seaLevelCount = 0;
+        // for(int i = 0; i < luminances.Count; i++){
+        //     float currElem = luminances[i];
+        //     if(Mathf.Approximately(currElem,0.0f)){
+        //         seaLevelCount++;
+        //         continue;
+        //     }
+        //     Debug.Log(luminances[i]);
+        // }
+        // Debug.Log(seaLevelCount + " Sea Level Points (> 0)");
+
+    }
+
 
 
 
@@ -56,22 +98,23 @@ public class BathymetryReader : MonoBehaviour {
                     Debug.LogError("Error reading scanline " + i);
                     break;
                 }
+                Debug.Log(bitsPerSample);
 
                 if (bitsPerSample == 32) {
                     for (int j = 0; j < scanlineSize; j += 4) {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);
-                        luminances.Add(Math.Clamp(depthValue, maxDepth, seaLevel));
+                        depths.Add(Math.Clamp(depthValue, maxDepth, seaLevel));
                     }
                 }
                 else if (bitsPerSample == 16) {
                     for (int j = 0; j < scanlineSize; j += 2) {
                         ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
-                        luminances.Add(Math.Clamp((float)shortValue, maxDepth, seaLevel));
+                        depths.Add(Math.Clamp((float)shortValue, maxDepth, seaLevel));
                     }
                 }
                 else {
                     for (int j = 0; j < scanlineSize; j++) {
-                        luminances.Add(Math.Clamp((float)buffer[j] / 255.0f,maxDepth, seaLevel));
+                        depths.Add(Math.Clamp((float)buffer[j] / 255.0f,maxDepth, seaLevel));
                     }
                 }
             }
