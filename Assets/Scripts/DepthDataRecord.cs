@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 
-public struct DepthDataRecord{
-    int west;
-    int north;
-
-    List<float> depths;
+public struct DepthDataRecord {
+    public int West { get; set; }
+    public int North { get; set; }
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public List<float> Depths { get; set; }
 }

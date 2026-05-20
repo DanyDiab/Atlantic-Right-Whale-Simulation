@@ -3,6 +3,7 @@ using System.IO;
 using System.Collections.Generic;
 using Stopwatch = System.Diagnostics.Stopwatch;
 using System.Linq;
+using System;
 public class Mesh : MonoBehaviour {
 
     string byteFileDir;
@@ -14,7 +15,7 @@ public class Mesh : MonoBehaviour {
 
         Stopwatch timer = new Stopwatch();
         timer.Start();
-        traversePath(byteFileDir, depths);
+        traversePath(byteFileDir);
         timer.Stop();
 
         long elapsedMs = timer.ElapsedMilliseconds;
@@ -45,35 +46,43 @@ public class Mesh : MonoBehaviour {
     }
 
 
-    void readInByteFile(string filePath, List<float> collection) {
+    DepthDataRecord readInByteFile(string filePath) {
+        DepthDataRecord record = new DepthDataRecord();
+
         if (string.IsNullOrEmpty(filePath)) {
-            return;
+            return record;
         }
 
         if (!File.Exists(filePath)) {
-            return;
+            return record;
         }
 
         using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
             using (BinaryReader reader = new BinaryReader(fs)) {
-                int count = reader.ReadInt32();
-                
-                collection.Capacity = collection.Count + count;
+                record.West = reader.ReadInt32();
+                record.North = reader.ReadInt32();
+                record.Width = reader.ReadInt32();
+                record.Height = reader.ReadInt32();
 
-                for (int i = 0; i < count; i++) {
-                    float depth = reader.ReadSingle();
-                    collection.Add(depth);
-                }
+                int count = reader.ReadInt32();
+                int byteCount = count * 4;
+
+                byte[] rawBytes = reader.ReadBytes(byteCount);
+                float[] depthsArray = new float[count];
+
+                Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
+
+                record.Depths = new List<float>(depthsArray);
             }
         }
+
+        return record;
     }
 
-
-    void traversePath(string path, List<float> collection) {
+    void traversePath(string path) {
         if (string.IsNullOrEmpty(path)) {
             return;
         }
-
         if (!Directory.Exists(path)) {
             return;
         }
@@ -81,18 +90,18 @@ public class Mesh : MonoBehaviour {
         string[] files = Directory.GetFiles(path, "*.bytes", SearchOption.TopDirectoryOnly);
 
         foreach (string file in files) {
-            readInByteFile(file, collection);
+            DepthDataRecord depthDataRecord = readInByteFile(file);
         }
     }
 
 
 
-    List<float> generateMeshData(List<float> depths){
+    void generateMeshData(List<float> depths){
         int posCount = depths.Count * 3;
 
         List<float> positions = new List<float>(posCount);
 
-        return positions;
+        // return positions;
     }
 
 

@@ -12,7 +12,6 @@ public class BathymetryReader : MonoBehaviour {
     string readingDir;
     string writingDir;
 
-    int width, height;
     List<float> depths;
 
     [SerializeField] float maxDepth = -10000;
@@ -22,24 +21,32 @@ public class BathymetryReader : MonoBehaviour {
     public void Start() {
         if(!runAnalysis) return;
         depths = new List<float>(1000000);
-        width = 10;
-        height = 10;
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
         writingDir = Path.Combine(Application.dataPath, "Data");
         readInAllTiffs(readingDir, writingDir);
     }
 
 
-    private void writeDepthsToBinary(string filePath) {
+    private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
         if (string.IsNullOrEmpty(filePath)) {
             return;
         }
 
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
             using (BinaryWriter writer = new BinaryWriter(fs)) {
-                writer.Write(depths.Count);
+                writer.Write(depthDataRecord.West);
+                writer.Write(depthDataRecord.North);
+                writer.Write(depthDataRecord.Width);
+                writer.Write(depthDataRecord.Height);
+
+                if (depthDataRecord.Depths == null) {
+                    writer.Write(0);
+                    return;
+                }
                 
-                foreach (float depth in depths) {
+                writer.Write(depthDataRecord.Depths.Count);
+                
+                foreach (float depth in depthDataRecord.Depths) {
                     writer.Write(depth);
                 }
             }
@@ -56,35 +63,52 @@ public class BathymetryReader : MonoBehaviour {
 
         IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(readingDir, pattern));
         foreach(string file in files){
-            readTiff(Path.Combine(readingDir, file));
+            DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
             string[] fileSplit = file.Split("/");
             string path = Path.Combine(writingDir, fileSplit[fileSplit.Length - 1]);
-            writeDepthsToBinary(path);
+            writeToBinary(path, depthDataRecord);
             depths.Clear();
             break;
         }
     }
 
 
+    private (int, int) parseCoords(string fileName){
+        string nameWithExt = fileName.Split("_")[1];
+        string extractedName = nameWithExt.Split(".")[0];
+        string northStr = extractedName.Split("N")[0];
+        string westStr = extractedName.Split("W")[0];
+
+        int north = int.Parse(northStr);
+        int west = int.Parse(westStr);
+
+        return (north, west);
+    }
 
 
-    private void readTiff(string filePath) {
+    private DepthDataRecord readTiff(string filePath) {
+        DepthDataRecord depthDataRecord = new DepthDataRecord();
+
         using (Tiff image = Tiff.Open(filePath, "r")) {
             if (image == null) {
                 Debug.LogError("Failed to open TIFF file at: " + filePath);
-                return;
+                return depthDataRecord;
             }
 
-            width = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
-            height = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
+            int width = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
+            int height = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
 
-            int samplesPerPixel = image.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
             int bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
-            Debug.Log(width);
-            Debug.Log(height);
 
             int scanlineSize = image.ScanlineSize();
             byte[] buffer = new byte[scanlineSize];
+
+            depthDataRecord.Width = width;
+            depthDataRecord.Height = height;
+            (int north, int west) = parseCoords(filePath);
+
+            depthDataRecord.North = north;
+            depthDataRecord.West = west;
 
             for (int i = 0; i < height; i++) {
                 if (!image.ReadScanline(buffer, i)) {
@@ -110,6 +134,8 @@ public class BathymetryReader : MonoBehaviour {
                     }
                 }
             }
+            depthDataRecord.Depths = depths;
         }
+        return depthDataRecord;
     }
 }
