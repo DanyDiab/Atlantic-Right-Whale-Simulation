@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using System.Linq;
 using Newtonsoft.Json;
+using Unity.VisualScripting;
 
 public class BathymetryReader : MonoBehaviour {
 
@@ -17,7 +18,9 @@ public class BathymetryReader : MonoBehaviour {
     [SerializeField] float maxDepth = -10000;
 
     [SerializeField] float seaLevel = 0;
+    [SerializeField] bool runAnalysis = false;
     public void Start() {
+        if(!runAnalysis) return;
         depths = new List<float>(1000000);
         width = 10;
         height = 10;
@@ -28,11 +31,9 @@ public class BathymetryReader : MonoBehaviour {
 
 
     private void writeDepthsToBinary(string filePath) {
-        
         if (string.IsNullOrEmpty(filePath)) {
             return;
         }
-
 
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
             using (BinaryWriter writer = new BinaryWriter(fs)) {
@@ -44,13 +45,14 @@ public class BathymetryReader : MonoBehaviour {
             }
         }
     }
+
     private void readInAllTiffs(string readingDir, string writingDir){
         
         if(!Directory.Exists(readingDir)){
             Debug.Log("The directory chosen is probably wrong: " + readingDir);
             return;
         }
-        string[] searchPatterns = new string[] {"*.bytes"};
+        string[] searchPatterns = {"*.bytes"};
 
         IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(readingDir, pattern));
         foreach(string file in files){
@@ -59,19 +61,8 @@ public class BathymetryReader : MonoBehaviour {
             string path = Path.Combine(writingDir, fileSplit[fileSplit.Length - 1]);
             writeDepthsToBinary(path);
             depths.Clear();
+            break;
         }
-
-        // int seaLevelCount = 0;
-        // for(int i = 0; i < luminances.Count; i++){
-        //     float currElem = luminances[i];
-        //     if(Mathf.Approximately(currElem,0.0f)){
-        //         seaLevelCount++;
-        //         continue;
-        //     }
-        //     Debug.Log(luminances[i]);
-        // }
-        // Debug.Log(seaLevelCount + " Sea Level Points (> 0)");
-
     }
 
 
@@ -89,6 +80,8 @@ public class BathymetryReader : MonoBehaviour {
 
             int samplesPerPixel = image.GetField(TiffTag.SAMPLESPERPIXEL)[0].ToInt();
             int bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
+            Debug.Log(width);
+            Debug.Log(height);
 
             int scanlineSize = image.ScanlineSize();
             byte[] buffer = new byte[scanlineSize];
@@ -98,8 +91,7 @@ public class BathymetryReader : MonoBehaviour {
                     Debug.LogError("Error reading scanline " + i);
                     break;
                 }
-                Debug.Log(bitsPerSample);
-
+                
                 if (bitsPerSample == 32) {
                     for (int j = 0; j < scanlineSize; j += 4) {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);

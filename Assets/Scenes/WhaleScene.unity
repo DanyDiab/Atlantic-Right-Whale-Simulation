@@ -128,8 +128,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 91705809}
-  - component: {fileID: 91705808}
   - component: {fileID: 91705810}
+  - component: {fileID: 91705811}
   m_Layer: 0
   m_Name: SeaFloor
   m_TagString: Untagged
@@ -137,18 +137,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &91705808
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 91705807}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 26f7bbdcdced6e59a80b0876cb5e14c1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MeshGenerator
 --- !u!4 &91705809
 Transform:
   m_ObjectHideFlags: 0
@@ -179,6 +167,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BathymetryReader
   maxDepth: -10000
   seaLevel: 0
+  runAnalysis: 1
+--- !u!114 &91705811
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91705807}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6870917853a2303e83091d6606c493b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Mesh
 --- !u!1 &367095933
 GameObject:
   m_ObjectHideFlags: 0
