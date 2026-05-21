@@ -167,7 +167,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BathymetryReader
   maxDepth: -10000
   seaLevel: 0
-  runAnalysis: 0
+  runAnalysis: 1
 --- !u!114 &91705811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -175,7 +175,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91705807}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6870917853a2303e83091d6606c493b, type: 3}
   m_Name: 

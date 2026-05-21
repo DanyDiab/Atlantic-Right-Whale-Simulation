@@ -4,7 +4,6 @@ using BitMiracle.LibTiff.Classic;
 using System.IO;
 using System;
 using System.Linq;
-using Newtonsoft.Json;
 using Unity.VisualScripting;
 
 public class BathymetryReader : MonoBehaviour {
