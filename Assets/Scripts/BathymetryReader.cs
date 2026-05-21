@@ -22,7 +22,7 @@ public class BathymetryReader : MonoBehaviour {
         if(!runAnalysis) return;
         depths = new List<float>(1000000);
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
-        writingDir = Path.Combine(Application.dataPath, "Data");
+        writingDir = Path.Combine(Application.dataPath, "Data", "Processed");
         readInAllTiffs(readingDir, writingDir);
     }
 
@@ -76,9 +76,13 @@ public class BathymetryReader : MonoBehaviour {
     private (int, int) parseCoords(string fileName){
         string nameWithExt = fileName.Split("_")[1];
         string extractedName = nameWithExt.Split(".")[0];
-        string northStr = extractedName.Split("N")[0];
-        string westStr = extractedName.Split("W")[0];
 
+        string[] northSplit = extractedName.Split("N");
+        string northStr = northSplit[0];
+        string westStr = northSplit[1].Substring(0,northSplit[1].Length - 1);
+
+
+        Debug.LogFormat("NORTH: {0}\nWEST: {1}", northStr, westStr);
         int north = int.Parse(northStr);
         int west = int.Parse(westStr);
 
@@ -134,6 +138,7 @@ public class BathymetryReader : MonoBehaviour {
                     }
                 }
             }
+            depthDataRecord.AverageDepth = depths.Average();
             depthDataRecord.Depths = depths;
         }
         return depthDataRecord;

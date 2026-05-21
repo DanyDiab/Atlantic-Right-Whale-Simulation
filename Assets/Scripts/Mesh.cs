@@ -4,105 +4,171 @@ using System.Collections.Generic;
 using Stopwatch = System.Diagnostics.Stopwatch;
 using System.Linq;
 using System;
-public class Mesh : MonoBehaviour {
+using UnityEngine.UIElements;
 
-    string byteFileDir;
-    List<float> depths;
+using UnityMesh = UnityEngine.Mesh;
 
-    void Start(){
-        byteFileDir = Path.Combine(Application.dataPath,"Data", "Processed");
-        depths = new List<float>();
+namespace MeshGeneration{
 
-        Stopwatch timer = new Stopwatch();
-        timer.Start();
-        traversePath(byteFileDir);
-        timer.Stop();
+    public class Mesh : MonoBehaviour {
 
-        long elapsedMs = timer.ElapsedMilliseconds;
-        Debug.Log(elapsedMs);
-   
-        float deepest = depths.Min();
-        float avg = 0.0f;
-        Debug.Log("the deepest point is: " + deepest);
-        int realPoints = 0;
-        foreach(float depth in depths){
-            if(depth >= 0.0f) continue;
+        string byteFileDir;
+        [SerializeField] MeshFilter mf;
 
-            avg += depth;
-            realPoints++;
+        void Start(){
+            byteFileDir = Path.Combine(Application.dataPath,"Data", "Processed");
+
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+            List<DepthDataRecord> depthDataRecords = traversePath(byteFileDir);
+            timer.Stop();
+
+            long elapsedMs = timer.ElapsedMilliseconds;
+            Debug.Log("took " + elapsedMs + " ms to generate depths records");
+
+            timer.Reset();
+            timer.Start();
+            UnityMesh mesh = generateMeshData(depthDataRecords);
+            timer.Stop();
+
+            elapsedMs = timer.ElapsedMilliseconds;
+            Debug.Log("took " + elapsedMs + " ms to generate mesh");
+
+            mf.mesh = mesh;
 
         }
-        Debug.Log("average Depth: " + avg / realPoints);
-        Debug.Log("number Points:" + depths.Count);
-        // int seaLevelCount = 0;
-        // for(int i = 0; i < depths.Count; i++){
-        //     float currElem = depths[i];
-        //     if(Mathf.Approximately(currElem,0.0f)){
-        //         seaLevelCount++;
-        //         continue;
-        //     Debug.Log(depths[i]);
-        // }
-        // Debug.Log(seaLevelCount + " Sea Level Points (> 0)");
-    }
 
 
-    DepthDataRecord readInByteFile(string filePath) {
-        DepthDataRecord record = new DepthDataRecord();
+        DepthDataRecord readInByteFile(string filePath) {
+            DepthDataRecord record = new DepthDataRecord();
 
-        if (string.IsNullOrEmpty(filePath)) {
-            return record;
-        }
-
-        if (!File.Exists(filePath)) {
-            return record;
-        }
-
-        using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
-            using (BinaryReader reader = new BinaryReader(fs)) {
-                record.West = reader.ReadInt32();
-                record.North = reader.ReadInt32();
-                record.Width = reader.ReadInt32();
-                record.Height = reader.ReadInt32();
-
-                int count = reader.ReadInt32();
-                int byteCount = count * 4;
-
-                byte[] rawBytes = reader.ReadBytes(byteCount);
-                float[] depthsArray = new float[count];
-
-                Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
-
-                record.Depths = new List<float>(depthsArray);
+            if (string.IsNullOrEmpty(filePath)) {
+                return record;
             }
+
+            if (!File.Exists(filePath)) {
+                return record;
+            }
+
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+                using (BinaryReader reader = new BinaryReader(fs)) {
+                    record.West = reader.ReadInt32();
+                    record.North = reader.ReadInt32();
+                    record.Width = reader.ReadInt32();
+                    record.Height = reader.ReadInt32();
+
+                    int count = reader.ReadInt32();
+                    int byteCount = count * 4;
+
+                    byte[] rawBytes = reader.ReadBytes(byteCount);
+                    float[] depthsArray = new float[count];
+
+                    Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
+
+                    record.Depths = new List<float>(depthsArray);
+                }
+            }
+
+            return record;
         }
 
-        return record;
+        List<DepthDataRecord> traversePath(string path) {
+            if (string.IsNullOrEmpty(path)) {
+                return null;
+            }
+            if (!Directory.Exists(path)) {
+                return null;
+            }
+
+            string[] files = Directory.GetFiles(path, "*.bytes", SearchOption.TopDirectoryOnly);
+            List<DepthDataRecord> depthDataRecords = new List<DepthDataRecord>(files.Length);
+            foreach (string file in files) {
+                DepthDataRecord depthDataRecord = readInByteFile(file);
+                depthDataRecords.Add(depthDataRecord);
+                break;
+            }
+            return depthDataRecords;
+        }
+
+
+
+        UnityMesh generateMeshData(List<DepthDataRecord> records){
+            List<Vector3> positions = new List<Vector3>();
+
+            UnityMesh mesh = new UnityMesh();
+
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            int width, height = width = 0;
+            int undefinedCount = 0;
+            foreach(DepthDataRecord record in records){
+                List<float> depths = record.Depths;
+                float averageDepth = record.AverageDepth;
+                int west = record.West;
+                int north = record.North;
+                height = record.Height;
+                width = record.Width;
+
+                int depthsCount = depths.Count;
+
+                positions.Capacity = positions.Count + depths.Count;
+                Vector3 curr = new Vector3();
+                for(int i = 0; i < depthsCount; i++){
+                    float x = i / height;
+                    float z = i % width;
+
+                    float y = depths[i];
+
+                    if(y >= 0){
+                        y = averageDepth;
+                        undefinedCount++;
+                    }
+                    
+                    curr.x = x;
+                    curr.y = y;
+                    curr.z = z;
+
+                    positions.Add(curr);
+                }
+
+            }
+            Debug.LogFormat("our data is not defined" + undefinedCount);
+
+
+
+
+            //generate indicies
+            int numTrianglesPerCol = (height - 1) * 2;
+            int numTriangles = numTrianglesPerCol * (width - 1);
+
+            int numQuads = numTriangles / 2;
+
+            List<int> triangles = new List<int>(numTriangles);
+            for(int i = 0; i < numQuads; i++){
+                int x = i % (width - 1);
+                int y = i / (height - 1);
+
+                int startingIndex = (y * width) + x;
+
+                int v1 = startingIndex;
+                int v2 = startingIndex + 1;
+                int v3 = startingIndex + width;
+
+                int v4 = v2;
+                int v5 = v2 + width;
+                int v6 = v3;
+
+                triangles.Add(v1);
+                triangles.Add(v2);
+                triangles.Add(v3);
+                triangles.Add(v4);
+                triangles.Add(v5);
+                triangles.Add(v6);
+
+            }
+
+            mesh.SetVertices(positions);
+            mesh.SetTriangles(triangles, 0);
+            return mesh;
+        }
     }
-
-    void traversePath(string path) {
-        if (string.IsNullOrEmpty(path)) {
-            return;
-        }
-        if (!Directory.Exists(path)) {
-            return;
-        }
-
-        string[] files = Directory.GetFiles(path, "*.bytes", SearchOption.TopDirectoryOnly);
-
-        foreach (string file in files) {
-            DepthDataRecord depthDataRecord = readInByteFile(file);
-        }
-    }
-
-
-
-    void generateMeshData(List<float> depths){
-        int posCount = depths.Count * 3;
-
-        List<float> positions = new List<float>(posCount);
-
-        // return positions;
-    }
-
-
 }
