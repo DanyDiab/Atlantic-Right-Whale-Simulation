@@ -68,7 +68,6 @@ public class BathymetryReader : MonoBehaviour {
             string path = Path.Combine(writingDir, fileSplit[fileSplit.Length - 1]);
             writeToBinary(path, depthDataRecord);
             depths.Clear();
-            break;
         }
     }
 
@@ -82,7 +81,6 @@ public class BathymetryReader : MonoBehaviour {
         string westStr = northSplit[1].Substring(0,northSplit[1].Length - 1);
 
 
-        Debug.LogFormat("NORTH: {0}\nWEST: {1}", northStr, westStr);
         int north = int.Parse(northStr);
         int west = int.Parse(westStr);
 

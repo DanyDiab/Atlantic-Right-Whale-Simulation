@@ -85,7 +85,6 @@ namespace MeshGeneration{
             foreach (string file in files) {
                 DepthDataRecord depthDataRecord = readInByteFile(file);
                 depthDataRecords.Add(depthDataRecord);
-                break;
             }
             return depthDataRecords;
         }
@@ -98,23 +97,26 @@ namespace MeshGeneration{
             UnityMesh mesh = new UnityMesh();
 
             mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-            int width, height = width = 0;
+            int totalWidth, totalHeight = totalWidth = 0;
             int undefinedCount = 0;
             foreach(DepthDataRecord record in records){
                 List<float> depths = record.Depths;
                 float averageDepth = record.AverageDepth;
                 int west = record.West;
                 int north = record.North;
-                height = record.Height;
-                width = record.Width;
+                int height = record.Height;
+                int width = record.Width;
+                
+                totalHeight += height;
+                totalWidth += width;
 
                 int depthsCount = depths.Count;
 
                 positions.Capacity = positions.Count + depths.Count;
                 Vector3 curr = new Vector3();
                 for(int i = 0; i < depthsCount; i++){
-                    float x = i / height;
-                    float z = i % width;
+                    float x = (i / height) - west;
+                    float z = (i % width) - north;
 
                     float y = depths[i];
 
@@ -137,24 +139,24 @@ namespace MeshGeneration{
 
 
             //generate indicies
-            int numTrianglesPerCol = (height - 1) * 2;
-            int numTriangles = numTrianglesPerCol * (width - 1);
+            int numTrianglesPerCol = (totalHeight - 1) * 2;
+            int numTriangles = numTrianglesPerCol * (totalWidth - 1);
 
             int numQuads = numTriangles / 2;
 
             List<int> triangles = new List<int>(numTriangles);
             for(int i = 0; i < numQuads; i++){
-                int x = i % (width - 1);
-                int y = i / (height - 1);
+                int x = i % (totalWidth - 1);
+                int y = i / (totalHeight - 1);
 
-                int startingIndex = (y * width) + x;
+                int startingIndex = (y * totalWidth) + x;
 
                 int v1 = startingIndex;
                 int v2 = startingIndex + 1;
-                int v3 = startingIndex + width;
+                int v3 = startingIndex + totalHeight;
 
                 int v4 = v2;
-                int v5 = v2 + width;
+                int v5 = v2 + totalWidth;
                 int v6 = v3;
 
                 triangles.Add(v1);
