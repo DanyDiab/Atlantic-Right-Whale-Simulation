@@ -77,6 +77,7 @@ private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
             records[i] = record;
         }
 
+        Debug.Log(records[2].ChunkPosition.x + "\n" + records[2].ChunkPosition.y);
 
     }
     private void readInAllTiffs(string readingDir, string writingDir){

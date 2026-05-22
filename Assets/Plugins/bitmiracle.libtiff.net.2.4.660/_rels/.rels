@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Type="http://schemas.microsoft.com/packaging/2010/07/manifest" Target="/BitMiracle.LibTiff.NET.nuspec" Id="R1CED7AC03E3BD125" />
-  <Relationship Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="/package/services/metadata/core-properties/f4fad969c1b1423d9a10897d55371fb0.psmdcp" Id="R7F5AAF570FF428C3" />
-</Relationships>
