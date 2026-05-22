@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using UnityEngine;
 
-public struct DepthDataRecord {
+public class DepthDataRecord {
     public int West { get; set; }
     public int North { get; set; }
     public int Width { get; set; }

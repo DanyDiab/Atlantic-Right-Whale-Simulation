@@ -15,7 +15,7 @@ public class BathymetryReader : MonoBehaviour {
 
     [SerializeField] float maxDepth = -10000;
 
-    [SerializeField] float seaLevel = 0;
+    [SerializeField] float seaLevel = 10000;
     [SerializeField] bool runAnalysis = false;
     public void Start() {
         if(!runAnalysis) return;
@@ -101,6 +101,12 @@ public class BathymetryReader : MonoBehaviour {
 
             int bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
 
+            FieldValue[] scaleField = image.GetField(TiffTag.GEOTIFF_MODELPIXELSCALETAG);
+            byte[] scaleBytes = scaleField[1].GetBytes(); 
+            double[] pixelScale = new double[3];
+            Buffer.BlockCopy(scaleBytes, 0, pixelScale, 0, scaleBytes.Length);
+
+
             int scanlineSize = image.ScanlineSize();
             byte[] buffer = new byte[scanlineSize];
 
@@ -110,7 +116,6 @@ public class BathymetryReader : MonoBehaviour {
 
             depthDataRecord.North = north;
             depthDataRecord.West = west;
-
             for (int i = 0; i < height; i++) {
                 if (!image.ReadScanline(buffer, i)) {
                     Debug.LogError("Error reading scanline " + i);

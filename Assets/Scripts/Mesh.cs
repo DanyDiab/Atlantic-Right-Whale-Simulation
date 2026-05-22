@@ -15,18 +15,16 @@ namespace MeshGeneration{
         string byteFileDir;
         [SerializeField] MeshFilter mf;
 
+        [Tooltip("number of files to create into a mesh, set to -1 to process all")]
+        [SerializeField] int numToRun = 1;
         void Start(){
             byteFileDir = Path.Combine(Application.dataPath,"Data", "Processed");
 
             Stopwatch timer = new Stopwatch();
-            timer.Start();
             List<DepthDataRecord> depthDataRecords = traversePath(byteFileDir);
-            timer.Stop();
 
             long elapsedMs = timer.ElapsedMilliseconds;
-            Debug.Log("took " + elapsedMs + " ms to generate depths records");
 
-            timer.Reset();
             timer.Start();
             UnityMesh mesh = generateMeshData(depthDataRecords);
             timer.Stop();
@@ -82,9 +80,12 @@ namespace MeshGeneration{
 
             string[] files = Directory.GetFiles(path, "*.bytes", SearchOption.TopDirectoryOnly);
             List<DepthDataRecord> depthDataRecords = new List<DepthDataRecord>(files.Length);
+            int count = 0;
             foreach (string file in files) {
+                if(count >= numToRun && numToRun != -1) continue;
                 DepthDataRecord depthDataRecord = readInByteFile(file);
                 depthDataRecords.Add(depthDataRecord);
+                count++;
             }
             return depthDataRecords;
         }
@@ -94,19 +95,23 @@ namespace MeshGeneration{
         UnityMesh generateMeshData(List<DepthDataRecord> records){
             List<Vector3> positions = new List<Vector3>();
 
-            UnityMesh mesh = new UnityMesh();
+            UnityMesh mesh = new UnityMesh{
+                indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
+            };
 
-            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+
             int totalWidth, totalHeight = totalWidth = 0;
             int undefinedCount = 0;
+
             foreach(DepthDataRecord record in records){
                 List<float> depths = record.Depths;
                 float averageDepth = record.AverageDepth;
+                Debug.LogFormat("AVG DEPTH: {0}", averageDepth);
                 int west = record.West;
                 int north = record.North;
                 int height = record.Height;
                 int width = record.Width;
-                
+                float distanceBetweenPoints = 10000 / height;
                 totalHeight += height;
                 totalWidth += width;
 
@@ -115,12 +120,12 @@ namespace MeshGeneration{
                 positions.Capacity = positions.Count + depths.Count;
                 Vector3 curr = new Vector3();
                 for(int i = 0; i < depthsCount; i++){
-                    float x = (i / height) - west;
-                    float z = (i % width) - north;
+                    float x = ((i / height) - west) * distanceBetweenPoints;
+                    float z = ((i % width) - north) * distanceBetweenPoints;
 
                     float y = depths[i];
 
-                    if(y >= 0){
+                    if(y >= -5){
                         y = averageDepth;
                         undefinedCount++;
                     }
@@ -133,14 +138,18 @@ namespace MeshGeneration{
                 }
 
             }
+            int recordCount = records.Count;
+            int averageHeight = totalHeight / recordCount;
+            int averageWidth = totalHeight / recordCount;
             Debug.LogFormat("our data is not defined" + undefinedCount);
 
 
 
 
             //generate indicies
-            int numTrianglesPerCol = (totalHeight - 1) * 2;
-            int numTriangles = numTrianglesPerCol * (totalWidth - 1);
+            int numTrianglesPerCol = (averageHeight - 1) * 2;
+            int numTriangles = (numTrianglesPerCol * (averageWidth - 1)) * recordCount;
+
 
             int numQuads = numTriangles / 2;
 
