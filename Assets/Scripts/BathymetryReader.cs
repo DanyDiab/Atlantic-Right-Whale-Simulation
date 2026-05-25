@@ -12,9 +12,9 @@ public class BathymetryReader : MonoBehaviour {
     string writingDir;
 
 
-    [SerializeField] float maxDepth = -10000;
+    [SerializeField] float maxDepth = float.MinValue;
 
-    [SerializeField] float seaLevel = 10000;
+    [SerializeField] float seaLevel = float.MaxValue;
     [SerializeField] bool runAnalysis = false;
     public void Start() {
         if(!runAnalysis) return;
@@ -172,33 +172,52 @@ private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
 
             List<float> localDepths = new List<float>(width * height);
 
-            for (int i = 0; i < height; i++) {
-                if (!image.ReadScanline(buffer, i)) {
+            for (int i = 0; i < height; i++)
+            {
+                if (!image.ReadScanline(buffer, i))
+                {
                     UnityEngine.Debug.LogError("Error reading scanline " + i);
                     break;
                 }
-                
-                if (bitsPerSample == 32) {
-                    for (int j = 0; j < scanlineSize; j += 4) {
+
+                if (bitsPerSample == 32)
+                {
+                    for (int j = 0; j < scanlineSize; j += 4)
+                    {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);
                         localDepths.Add(Math.Clamp(depthValue, maxDepth, seaLevel));
                     }
                 }
-                else if (bitsPerSample == 16) {
-                    for (int j = 0; j < scanlineSize; j += 2) {
+                else if (bitsPerSample == 16)
+                {
+                    for (int j = 0; j < scanlineSize; j += 2)
+                    {
                         ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
                         localDepths.Add(Math.Clamp((float)shortValue, maxDepth, seaLevel));
                     }
                 }
-                else {
-                    for (int j = 0; j < scanlineSize; j++) {
+                else
+                {
+                    for (int j = 0; j < scanlineSize; j++)
+                    {
                         localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, maxDepth, seaLevel));
                     }
                 }
             }
 
+            float total = 0.0f;
+            int count = 0;
+            foreach (float depth in localDepths)
+            {
+                if (depth < 0.0)
+                {
+                    count++;
+                    total += depth;
+                }
+            }
 
-            depthDataRecord.AverageDepth = localDepths.Average();
+            float avg = total / count;
+            depthDataRecord.AverageDepth = avg;
             depthDataRecord.Depths = localDepths;
         }
 
