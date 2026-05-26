@@ -11,6 +11,8 @@ public class BathymetryReader : MonoBehaviour {
     string readingDir;
     string writingDir;
 
+    BathymetryPatcher patcher = new BathymetryPatcher();
+
 
     [SerializeField] float maxDepth = float.MinValue;
 
@@ -79,8 +81,6 @@ public class BathymetryReader : MonoBehaviour {
             records[i] = record;
         }
 
-        Debug.Log(records[2].ChunkPosition.x + "\n" + records[2].ChunkPosition.y);
-
     }
     private void readInAllTiffs(string readingDir, string writingDir){
         
@@ -105,7 +105,7 @@ public class BathymetryReader : MonoBehaviour {
 
             fileNames.Add(name);
             records.Add(depthDataRecord);
-
+            break;
         }
 
         generateChunkOffsets(records, fileNames);
@@ -206,20 +206,7 @@ public class BathymetryReader : MonoBehaviour {
                 }
             }
 
-            float total = 0.0f;
-            int count = 0;
-            foreach (float depth in localDepths)
-            {
-                if (depth < 0.0)
-                {
-                    count++;
-                    total += depth;
-                }
-            }
-
-            float avg = total / count;
-            depthDataRecord.AverageDepth = avg;
-            depthDataRecord.Depths = localDepths;
+            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height);
         }
 
         return depthDataRecord;

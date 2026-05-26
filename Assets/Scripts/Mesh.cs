@@ -148,7 +148,6 @@ namespace MeshGeneration
                 indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
             };
 
-            int undefinedCount = 0;
 
             List<float> depths = record.Depths;
             float averageDepth = record.AverageDepth;
@@ -170,12 +169,6 @@ namespace MeshGeneration
                 float x = col * distanceBetweenX;
                 float z = row * distanceBetweenZ;
                 float y = depths[i];
-
-                if (y >= 0)
-                {
-                    y = averageDepth;
-                    undefinedCount++;
-                }
 
                 curr.x = x;
                 curr.y = y;
