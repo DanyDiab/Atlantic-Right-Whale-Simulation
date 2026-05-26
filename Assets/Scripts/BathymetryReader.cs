@@ -16,6 +16,8 @@ public class BathymetryReader : MonoBehaviour {
 
     [SerializeField] float seaLevel = float.MaxValue;
     [SerializeField] bool runAnalysis = false;
+    char[] fileDelims = {'/', '\\'};
+
     public void Start() {
         if(!runAnalysis) return;
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
@@ -24,7 +26,7 @@ public class BathymetryReader : MonoBehaviour {
     }
 
 
-private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
+    private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
             using (BinaryWriter writer = new BinaryWriter(fs)) {
                 writer.Write(depthDataRecord.Width);
@@ -98,8 +100,7 @@ private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
         foreach(string file in files){
             DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
 
-
-            string[] fileSplit = file.Split("/");
+            string[] fileSplit = file.Split(fileDelims);
             string name = fileSplit[fileSplit.Length - 1];
 
             fileNames.Add(name);
