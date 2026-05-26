@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Stopwatch = System.Diagnostics.Stopwatch;
 using Supercluster.KDTree;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -51,7 +52,20 @@ public class BathymetryPatcher{
 // grab nearest X neighbors using KNN
 // do inverse distance weighting on nearest points to estimate missing data point
     public List<float> patchChunk(List<float> depths, int width, int height){
+        Stopwatch stopwatch = new Stopwatch();
+
+
+        stopwatch.Start();
         KDTree<float, int> tree = generateTree(depths,width,height);
+        stopwatch.Stop();
+        float generatingMS = stopwatch.ElapsedMilliseconds;
+        stopwatch.Reset();
+
+        float averagingTime = 0f;
+
+        Stopwatch avgStop = new Stopwatch();
+        Debug.Log("Generating KD tree took:" + generatingMS);
+         stopwatch.Start();
 
         float[] target = new float[2];
         for(int i = 0; i < depths.Count; i++)
@@ -64,13 +78,14 @@ public class BathymetryPatcher{
 
             target[0] = x;
             target[1] = y;
+            avgStop.Start();
 
             Tuple<float[], int>[] nearest = tree.NearestNeighbors(target, numNeighbors);
+            avgStop.Stop();
 
             float numerator = 0.0f;
             float denominator = 0.0f;
             bool exactMatch = false;
-
             for (int j = 0; j < nearest.Length; j++) {
                 float[] neighborPosition = nearest[j].Item1;
                 int originalIndex = nearest[j].Item2;
@@ -99,6 +114,19 @@ public class BathymetryPatcher{
 
         }
 
+        stopwatch.Stop();
+
+        float PatchingTime = stopwatch.ElapsedMilliseconds;
+
+        Debug.Log("patching time: " + PatchingTime);
+
+        Debug.Log("total time taken: " + (PatchingTime + generatingMS));
+
+        averagingTime = avgStop.ElapsedMilliseconds;
+
+
+        float averagingPercent = averagingTime / PatchingTime;
+        Debug.LogFormat("finding neighbors took {0}% of patching \n {1} MS", averagingPercent, averagingTime);
         return depths;
 
 
