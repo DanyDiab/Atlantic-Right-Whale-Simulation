@@ -10,18 +10,14 @@ public class BathymetryReader : MonoBehaviour {
 
     string readingDir;
     string writingDir;
+    [SerializeField] ProcessingSettings processingSettings;
 
     BathymetryPatcher patcher = new BathymetryPatcher();
 
 
-    [SerializeField] float maxDepth = float.MinValue;
-
-    [SerializeField] float seaLevel = float.MaxValue;
-    [SerializeField] bool runAnalysis = false;
     char[] fileDelims = {'/', '\\'};
 
     public void Start() {
-        if(!runAnalysis) return;
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
         writingDir = Path.Combine(Application.dataPath, "Data", "Processed");
         readInAllTiffs(readingDir, writingDir);
@@ -186,7 +182,7 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 4)
                     {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);
-                        localDepths.Add(Math.Clamp(depthValue, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp(depthValue, processingSettings.SeaLevel, processingSettings.SeaLevel));
                     }
                 }
                 else if (bitsPerSample == 16)
@@ -194,19 +190,19 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 2)
                     {
                         ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
-                        localDepths.Add(Math.Clamp((float)shortValue, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp((float)shortValue, processingSettings.SeaLevel, processingSettings.SeaLevel));
                     }
                 }
                 else
                 {
                     for (int j = 0; j < scanlineSize; j++)
                     {
-                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, processingSettings.SeaLevel, processingSettings.SeaLevel));
                     }
                 }
             }
 
-            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height);
+            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height, processingSettings);
         }
 
         return depthDataRecord;
