@@ -16,15 +16,11 @@ public class BathymetryReader : MonoBehaviour {
     BathymetryPatcher patcher = new BathymetryPatcher();
 
     Dictionary<DataArea, string> areaFilePaths;
-
-
     char[] fileDelims = {'/', '\\'};
 
     public void Start() {
-        areaFilePaths[DataArea.GSL] = "GSL";
-        areaFilePaths[DataArea.BoF] = "Bof";
 
-        string path = areaFilePaths[processingSettings.DataArea];
+        string path = processingSettings.AreaToFilePath();
 
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
         writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);

@@ -24,4 +24,9 @@ public class ProcessingSettings : ScriptableObject
     [Header("Max Depth, NOTE must be negative!!!!")]
     [Tooltip("Clips any values past the max depth to max depth as a fall back")]
     public int MaxDepth;
+    
+
+    public string AreaToFilePath(){
+        return DataArea == DataArea.GSL ? "GSL" : "BoF";
+    }
 }

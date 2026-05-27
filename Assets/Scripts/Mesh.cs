@@ -19,28 +19,45 @@ namespace MeshGeneration
         [Tooltip("Parent of all the mesh chunks")]
 
         [SerializeField] GameObject parent;
+        [SerializeField] ProcessingSettings processingSettings;
 
         [SerializeField] Material meshMaterial;
         [Header("File Settings")]
 
         [Tooltip("number of files to create into a mesh, set to -1 to process all")]
         [SerializeField] int numToRun = 1;
+
+        [Header("Reload Meshes")]
+        [Tooltip("Press this to reload all the meshes from the binary files found in Assets/Data/Processed/(Area)")]
+        [SerializeField] bool reloadMesh;
+
         string byteFileDir;
 
         void Start()
         {
-            byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed");
+            string areaPath = processingSettings.AreaToFilePath();
+            byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
+            startMeshPipeline();
+        }
 
+        void Update()
+        {
+            if(reloadMesh){
+                startMeshPipeline();
+                reloadMesh = false;
+            }
+        }
+
+
+        void startMeshPipeline(){
             Stopwatch timer = new Stopwatch();
             List<DepthDataRecord> depthDataRecords = traversePath(byteFileDir);
-
-            long elapsedMs = timer.ElapsedMilliseconds;
 
             timer.Start();
             generateAllMeshes(depthDataRecords);
             timer.Stop();
 
-            elapsedMs = timer.ElapsedMilliseconds;
+            long elapsedMs = timer.ElapsedMilliseconds;
             Debug.Log("took " + elapsedMs + " ms to generate mesh");
         }
 
