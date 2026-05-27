@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.EditorTools;
 using UnityEngine;
 
@@ -7,6 +9,8 @@ public enum DataArea
     GSL,
     BoF
 }
+
+
 
 [CreateAssetMenu(fileName = "ProcessingSettings", menuName = "Scriptable Objects/ProcessingSettings")]
 public class ProcessingSettings : ScriptableObject

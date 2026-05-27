@@ -5,6 +5,7 @@ using System.IO;
 using System;
 using System.Linq;
 using Unity.VisualScripting;
+using Unity.ProjectAuditor.Editor;
 
 public class BathymetryReader : MonoBehaviour {
 
@@ -14,12 +15,19 @@ public class BathymetryReader : MonoBehaviour {
 
     BathymetryPatcher patcher = new BathymetryPatcher();
 
+    Dictionary<DataArea, string> areaFilePaths;
+
 
     char[] fileDelims = {'/', '\\'};
 
     public void Start() {
-        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
-        writingDir = Path.Combine(Application.dataPath, "Data", "Processed");
+        areaFilePaths[DataArea.GSL] = "GSL";
+        areaFilePaths[DataArea.BoF] = "Bof";
+
+        string path = areaFilePaths[processingSettings.DataArea];
+
+        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
+        writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
         readInAllTiffs(readingDir, writingDir);
     }
 
