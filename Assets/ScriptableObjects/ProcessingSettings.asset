@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: ProcessingSettings
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingSettings
   DataArea: 0
-  SeaLevel: 0
+  SeaLevel: -5
   MaxDepth: -10000
-  numToRun: -1
+  numToRun: 1

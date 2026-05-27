@@ -175,8 +175,7 @@ namespace MeshGeneration
             };
 
 
-            int undefinedCount = 0;
-
+            
             List<float> depths = record.Depths;
 
             int height = record.Height;

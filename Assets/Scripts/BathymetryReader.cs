@@ -194,7 +194,7 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 4)
                     {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);
-                        localDepths.Add(Math.Clamp(depthValue, processingSettings.SeaLevel, processingSettings.SeaLevel));
+                        localDepths.Add(Math.Clamp(depthValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
                 else if (bitsPerSample == 16)
@@ -202,14 +202,14 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 2)
                     {
                         ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
-                        localDepths.Add(Math.Clamp((float)shortValue, processingSettings.SeaLevel, processingSettings.SeaLevel));
+                        localDepths.Add(Math.Clamp((float)shortValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
                 else
                 {
                     for (int j = 0; j < scanlineSize; j++)
                     {
-                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, processingSettings.SeaLevel, processingSettings.SeaLevel));
+                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
             }

@@ -31,7 +31,7 @@ public class BathymetryPatcher{
 
         int currentIndex = 0;
         for (int i = 0; i < depthsCount; i++) {
-            if (depths[i] >= settings.SeaLevel) continue;
+            if (depths[i] > settings.SeaLevel) continue;
 
             float x = (i % width);
             float y = (i / width);
@@ -55,11 +55,21 @@ public class BathymetryPatcher{
 
         KDTree<float, int> tree = generateTree(depths,width,height);
 
-
+        Dictionary<float, int> seen = new Dictionary<float, int>();
         float[] target = new float[2];
+
+        int badCheck = 0;
         for(int i = 0; i < depths.Count; i++)
         {
             // skip valid points
+            if (!seen.ContainsKey(depths[i]))
+            {
+                seen[depths[i]] = 1;
+            }
+            else
+            {
+                seen[depths[i]]++;
+            }
             if(depths[i] < settings.SeaLevel) continue;
 
             float x = i % width;
@@ -84,6 +94,7 @@ public class BathymetryPatcher{
                 float squaredDistance = (dx * dx) + (dy * dy);
 
                 if (squaredDistance <= 0.0f) {
+                    badCheck++;
                     depths[i] = knownDepth;
                     exactMatch = true;
                     break; 
@@ -100,6 +111,11 @@ public class BathymetryPatcher{
             }
 
         }
+
+        int unqiue = seen.Keys.Count;
+
+        Debug.LogFormat("Unqiue: {0}", unqiue);
+        Debug.Log(badCheck);
 
         return depths;
 
