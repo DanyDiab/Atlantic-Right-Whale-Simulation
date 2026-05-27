@@ -15,3 +15,4 @@ MonoBehaviour:
   DataArea: 0
   SeaLevel: 0
   MaxDepth: -10000
+  numToRun: -1

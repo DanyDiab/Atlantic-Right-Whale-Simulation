@@ -161,14 +161,12 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91705807}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d43fc5e49c2818cc4bf25f0414aa9e27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BathymetryReader
-  maxDepth: -10000
-  seaLevel: 1000
-  runAnalysis: 1
+  processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
 --- !u!114 &91705811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -176,14 +174,16 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91705807}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6870917853a2303e83091d6606c493b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Mesh
+  chunkSize: 10000
   parent: {fileID: 1345709378}
+  processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
   meshMaterial: {fileID: 15302, guid: 0000000000000000f000000000000000, type: 0}
-  numToRun: -1
+  reloadMesh: 0
 --- !u!1 &367095933
 GameObject:
   m_ObjectHideFlags: 0

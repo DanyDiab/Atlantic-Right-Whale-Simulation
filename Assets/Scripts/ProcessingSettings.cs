@@ -24,6 +24,10 @@ public class ProcessingSettings : ScriptableObject
     [Header("Max Depth, NOTE must be negative!!!!")]
     [Tooltip("Clips any values past the max depth to max depth as a fall back")]
     public int MaxDepth;
+
+    [Header("How many files to process? -1 : run all")]
+    public int numToRun = 1;
+    
     
 
     public string AreaToFilePath(){

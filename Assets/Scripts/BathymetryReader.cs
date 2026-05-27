@@ -15,7 +15,6 @@ public class BathymetryReader : MonoBehaviour {
 
     BathymetryPatcher patcher = new BathymetryPatcher();
 
-    Dictionary<DataArea, string> areaFilePaths;
     char[] fileDelims = {'/', '\\'};
 
     public void Start() {
@@ -24,6 +23,10 @@ public class BathymetryReader : MonoBehaviour {
 
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
         writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
+        if (!Directory.Exists(writingDir))
+        {
+            Directory.CreateDirectory(writingDir);
+        }
         readInAllTiffs(readingDir, writingDir);
     }
 
@@ -88,6 +91,9 @@ public class BathymetryReader : MonoBehaviour {
             Debug.Log("The directory chosen is probably wrong: " + readingDir);
             return;
         }
+
+        int numToRun = processingSettings.numToRun;
+
         string[] searchPatterns = {"*.bytes"};
 
         IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(readingDir, pattern));
@@ -97,6 +103,7 @@ public class BathymetryReader : MonoBehaviour {
         List<string> fileNames = new List<string>(numFiles);
         List<DepthDataRecord> records = new List<DepthDataRecord>(numFiles);
 
+        int count = 0;
         foreach(string file in files){
             DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
 
@@ -105,7 +112,8 @@ public class BathymetryReader : MonoBehaviour {
 
             fileNames.Add(name);
             records.Add(depthDataRecord);
-            break;
+            count++;
+            if(numToRun != -1 && count >= numToRun) break;
         }
 
         generateChunkOffsets(records, fileNames);

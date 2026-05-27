@@ -13,7 +13,7 @@ namespace MeshGeneration
 
     public class Mesh : MonoBehaviour
     {
-        int chunkSize = 10000;
+        [SerializeField] int chunkSize = 10000;
 
         [Header("General")]
         [Tooltip("Parent of all the mesh chunks")]
@@ -22,10 +22,6 @@ namespace MeshGeneration
         [SerializeField] ProcessingSettings processingSettings;
 
         [SerializeField] Material meshMaterial;
-        [Header("File Settings")]
-
-        [Tooltip("number of files to create into a mesh, set to -1 to process all")]
-        [SerializeField] int numToRun = 1;
 
         [Header("Reload Meshes")]
         [Tooltip("Press this to reload all the meshes from the binary files found in Assets/Data/Processed/(Area)")]
@@ -42,9 +38,21 @@ namespace MeshGeneration
 
         void Update()
         {
-            if(reloadMesh){
-                startMeshPipeline();
-                reloadMesh = false;
+            if(!reloadMesh) return;
+            
+            clearOldChunks();
+            startMeshPipeline();
+            reloadMesh = false;
+
+        }
+
+        void clearOldChunks()
+        {
+            foreach(Transform child in parent.GetComponentsInChildren<Transform>(true))
+            {
+                if(child == parent.transform) continue;
+
+                Destroy(child.gameObject);
             }
         }
 
@@ -112,6 +120,8 @@ namespace MeshGeneration
 
         List<DepthDataRecord> traversePath(string path)
         {
+
+            int numToRun = processingSettings.numToRun;
             if (string.IsNullOrEmpty(path))
             {
                 return null;
@@ -145,6 +155,7 @@ namespace MeshGeneration
 
                 UnityMesh chunkMesh = generateMeshData(record);
                 GameObject chunkObject = new GameObject("TerrainChunk_W" + west + "_N" + north);
+                chunkObject.transform.SetParent(parent.transform);
                 MeshFilter meshFilter = chunkObject.AddComponent<MeshFilter>();
                 MeshRenderer meshRenderer = chunkObject.AddComponent<MeshRenderer>();
                 meshRenderer.material = meshMaterial;
@@ -156,35 +167,32 @@ namespace MeshGeneration
             }
         }
 
-        UnityMesh generateMeshData(DepthDataRecord record)
-        {
+        UnityMesh generateMeshData(DepthDataRecord record){
             List<Vector3> positions = new List<Vector3>();
 
-            UnityMesh mesh = new UnityMesh
-            {
+            UnityMesh mesh = new UnityMesh{
                 indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
             };
 
 
+            int undefinedCount = 0;
+
             List<float> depths = record.Depths;
-            float averageDepth = record.AverageDepth;
+
             int height = record.Height;
             int width = record.Width;
+            float distanceBetweenPointsX = chunkSize / (width - 1);
+            float distanceBetweenPointsZ = chunkSize / (height - 1);
 
-            float distanceBetweenX = (float)chunkSize / (width - 1);
-            float distanceBetweenZ = (float)chunkSize / (height - 1);
 
             int depthsCount = depths.Count;
-            positions.Capacity = depthsCount;
+
+            positions.Capacity = positions.Count + depths.Count;
             Vector3 curr = new Vector3();
+            for(int i = 0; i < depthsCount; i++){
+                float x = (i / height) * distanceBetweenPointsX;
+                float z = (i % width) * distanceBetweenPointsZ;
 
-            for (int i = 0; i < depthsCount; i++)
-            {
-                int col = i % width;
-                int row = i / width;
-
-                float x = col * distanceBetweenX;
-                float z = row * distanceBetweenZ;
                 float y = depths[i];
 
                 curr.x = x;
@@ -194,37 +202,43 @@ namespace MeshGeneration
                 positions.Add(curr);
             }
 
-            int numQuadsX = width - 1;
-            int numQuadsZ = height - 1;
-            int numQuads = numQuadsX * numQuadsZ;
 
-            List<int> triangles = new List<int>(numQuads * 6);
 
-            for (int i = 0; i < numQuads; i++)
-            {
-                int qx = i % numQuadsX;
-                int qz = i / numQuadsX;
 
-                int startingIndex = (qz * width) + qx;
+
+            //generate indicies
+            int numTrianglesPerCol = (height - 1) * 2;
+            int numTriangles = numTrianglesPerCol * (width - 1);
+
+
+            int numQuads = numTriangles / 2;
+
+            List<int> triangles = new List<int>(numTriangles);
+            for(int i = 0; i < numQuads; i++){
+                int x = i % (width - 1);
+                int y = i / (height - 1);
+
+                int startingIndex = (y * width) + x;
 
                 int v1 = startingIndex;
                 int v2 = startingIndex + 1;
-                int v3 = startingIndex + width;
-                int v4 = v3 + 1;
+                int v3 = startingIndex + height;
+
+                int v4 = v2;
+                int v5 = v2 + width;
+                int v6 = v3;
 
                 triangles.Add(v1);
-                triangles.Add(v3);
-                triangles.Add(v2);
-
                 triangles.Add(v2);
                 triangles.Add(v3);
                 triangles.Add(v4);
+                triangles.Add(v5);
+                triangles.Add(v6);
+
             }
 
             mesh.SetVertices(positions);
             mesh.SetTriangles(triangles, 0);
-            mesh.RecalculateNormals();
-
             return mesh;
         }
     }

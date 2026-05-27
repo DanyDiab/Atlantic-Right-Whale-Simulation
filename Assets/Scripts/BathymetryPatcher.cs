@@ -31,7 +31,7 @@ public class BathymetryPatcher{
 
         int currentIndex = 0;
         for (int i = 0; i < depthsCount; i++) {
-            if (depths[i] > settings.SeaLevel) continue;
+            if (depths[i] >= settings.SeaLevel) continue;
 
             float x = (i % width);
             float y = (i / width);
@@ -60,7 +60,7 @@ public class BathymetryPatcher{
         for(int i = 0; i < depths.Count; i++)
         {
             // skip valid points
-            if(depths[i] <= settings.SeaLevel) continue;
+            if(depths[i] < settings.SeaLevel) continue;
 
             float x = i % width;
             float y = i / width;
@@ -83,7 +83,7 @@ public class BathymetryPatcher{
                 float dy = target[1] - neighborPosition[1];
                 float squaredDistance = (dx * dx) + (dy * dy);
 
-                if (0.001f > squaredDistance) {
+                if (squaredDistance <= 0.0f) {
                     depths[i] = knownDepth;
                     exactMatch = true;
                     break; 
