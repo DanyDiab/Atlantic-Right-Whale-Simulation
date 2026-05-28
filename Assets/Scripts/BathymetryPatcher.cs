@@ -5,10 +5,16 @@ using UnityEngine;
 
 public class BathymetryPatcher{
 
-    int numNeighbors = 4;
+    int numNeighbors = 10;
     ProcessingSettings settings;
     
+    Noise noise;
 
+    public BathymetryPatcher(ProcessingSettings settings)
+    {
+        this.settings = settings;
+        noise = new Noise(settings);
+    }
     private KDTree<float, int> generateTree(List<float> depths, int width, int height)
     {
 
@@ -50,12 +56,10 @@ public class BathymetryPatcher{
 // add to Kd Tree
 // grab nearest X neighbors using KNN
 // do inverse distance weighting on nearest points to estimate missing data point
-    public List<float> patchChunk(List<float> depths, int width, int height, ProcessingSettings processingSettings){
-
-        settings = processingSettings;
+    public List<float> patchChunk(List<float> depths, int width, int height){
 
         KDTree<float, int> tree = generateTree(depths,width,height);
-
+        int[] size = {width, height};
         float[] target = new float[2];
 
         for(int i = 0; i < depths.Count; i++)
@@ -85,7 +89,7 @@ public class BathymetryPatcher{
                 float squaredDistance = (dx * dx) + (dy * dy);
 
                 if (squaredDistance <= 0.0f) {
-                    depths[i] = knownDepth;
+                    depths[i] = noise.addNoise(knownDepth, target, size);
                     exactMatch = true;
                     break; 
                 }
@@ -97,12 +101,12 @@ public class BathymetryPatcher{
 
             if(!exactMatch && !Mathf.Approximately(denominator, 0.0f))
             {
-                depths[i] = numerator / denominator;
+                float newValue = numerator / denominator;
+ 
+                depths[i] = noise.addNoise(newValue, target, size);
             }
 
         }
-
-
 
         return depths;
 

@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1251b3236c5473f4882ec8a7c7e40120, type: 3}
   m_Name: ProcessingSettings
   m_EditorClassIdentifier: Assembly-CSharp::ProcessingSettings
-  DataArea: 0
-  SeaLevel: -5
+  DataArea: 1
+  SeaLevel: 0
   MaxDepth: -10000
   numToRun: 1
+  noiseAmplitude: 5
+  noiseFrequency: 5

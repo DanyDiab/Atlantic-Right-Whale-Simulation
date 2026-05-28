@@ -12,13 +12,32 @@ public class BathymetryReader : MonoBehaviour {
     string readingDir;
     string writingDir;
     [SerializeField] ProcessingSettings processingSettings;
+    BathymetryPatcher patcher;
 
-    BathymetryPatcher patcher = new BathymetryPatcher();
+    [SerializeField] bool reloadReader = false;
 
     char[] fileDelims = {'/', '\\'};
 
-    public void Start() {
 
+    void Update()
+    {
+        if(!reloadReader) return;
+
+        startPipeline();
+
+        reloadReader = false;
+    }
+
+    public void Start() {
+        patcher = new BathymetryPatcher(processingSettings);
+
+        startPipeline();
+
+    }
+
+
+    void startPipeline()
+    {
         string path = processingSettings.AreaToFilePath();
 
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
@@ -27,7 +46,7 @@ public class BathymetryReader : MonoBehaviour {
         {
             Directory.CreateDirectory(writingDir);
         }
-        readInAllTiffs(readingDir, writingDir);
+        readInAllTiffs(readingDir, writingDir);        
     }
 
 
@@ -214,7 +233,7 @@ public class BathymetryReader : MonoBehaviour {
                 }
             }
 
-            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height, processingSettings);
+            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height);
         }
 
         return depthDataRecord;
