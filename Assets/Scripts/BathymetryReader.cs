@@ -5,23 +5,28 @@ using System.IO;
 using System;
 using System.Linq;
 using Unity.VisualScripting;
+using Unity.ProjectAuditor.Editor;
 
 public class BathymetryReader : MonoBehaviour {
 
     string readingDir;
     string writingDir;
+    [SerializeField] ProcessingSettings processingSettings;
 
+    BathymetryPatcher patcher = new BathymetryPatcher();
 
-    [SerializeField] float maxDepth = float.MinValue;
-
-    [SerializeField] float seaLevel = float.MaxValue;
-    [SerializeField] bool runAnalysis = false;
     char[] fileDelims = {'/', '\\'};
 
     public void Start() {
-        if(!runAnalysis) return;
-        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry");
-        writingDir = Path.Combine(Application.dataPath, "Data", "Processed");
+
+        string path = processingSettings.AreaToFilePath();
+
+        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
+        writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
+        if (!Directory.Exists(writingDir))
+        {
+            Directory.CreateDirectory(writingDir);
+        }
         readInAllTiffs(readingDir, writingDir);
     }
 
@@ -79,8 +84,6 @@ public class BathymetryReader : MonoBehaviour {
             records[i] = record;
         }
 
-        Debug.Log(records[2].ChunkPosition.x + "\n" + records[2].ChunkPosition.y);
-
     }
     private void readInAllTiffs(string readingDir, string writingDir){
         
@@ -88,6 +91,9 @@ public class BathymetryReader : MonoBehaviour {
             Debug.Log("The directory chosen is probably wrong: " + readingDir);
             return;
         }
+
+        int numToRun = processingSettings.numToRun;
+
         string[] searchPatterns = {"*.bytes"};
 
         IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(readingDir, pattern));
@@ -97,6 +103,7 @@ public class BathymetryReader : MonoBehaviour {
         List<string> fileNames = new List<string>(numFiles);
         List<DepthDataRecord> records = new List<DepthDataRecord>(numFiles);
 
+        int count = 0;
         foreach(string file in files){
             DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
 
@@ -105,7 +112,8 @@ public class BathymetryReader : MonoBehaviour {
 
             fileNames.Add(name);
             records.Add(depthDataRecord);
-
+            count++;
+            if(numToRun != -1 && count >= numToRun) break;
         }
 
         generateChunkOffsets(records, fileNames);
@@ -186,7 +194,7 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 4)
                     {
                         float depthValue = System.BitConverter.ToSingle(buffer, j);
-                        localDepths.Add(Math.Clamp(depthValue, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp(depthValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
                 else if (bitsPerSample == 16)
@@ -194,32 +202,19 @@ public class BathymetryReader : MonoBehaviour {
                     for (int j = 0; j < scanlineSize; j += 2)
                     {
                         ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
-                        localDepths.Add(Math.Clamp((float)shortValue, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp((float)shortValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
                 else
                 {
                     for (int j = 0; j < scanlineSize; j++)
                     {
-                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, maxDepth, seaLevel));
+                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, processingSettings.MaxDepth, processingSettings.SeaLevel));
                     }
                 }
             }
 
-            float total = 0.0f;
-            int count = 0;
-            foreach (float depth in localDepths)
-            {
-                if (depth < 0.0)
-                {
-                    count++;
-                    total += depth;
-                }
-            }
-
-            float avg = total / count;
-            depthDataRecord.AverageDepth = avg;
-            depthDataRecord.Depths = localDepths;
+            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height, processingSettings);
         }
 
         return depthDataRecord;
