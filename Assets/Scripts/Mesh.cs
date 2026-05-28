@@ -58,15 +58,9 @@ namespace MeshGeneration
 
 
         void startMeshPipeline(){
-            Stopwatch timer = new Stopwatch();
             List<DepthDataRecord> depthDataRecords = traversePath(byteFileDir);
 
-            timer.Start();
             generateAllMeshes(depthDataRecords);
-            timer.Stop();
-
-            long elapsedMs = timer.ElapsedMilliseconds;
-            Debug.Log("took " + elapsedMs + " ms to generate mesh");
         }
 
 
@@ -163,7 +157,7 @@ namespace MeshGeneration
                 meshFilter.mesh = chunkMesh;
 
 
-                chunkObject.transform.position = new Vector3(-west, 0, north);
+                chunkObject.transform.position = new Vector3(north, 0, -west);
             }
         }
 
