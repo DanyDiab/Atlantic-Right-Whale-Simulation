@@ -21,7 +21,7 @@ public class BathymetryPatcher{
 
         int validPointCount = 0;
         for (int i = 0; i < depthsCount; i++) {
-            if (depths[i] <= settings.SeaLevel) {
+            if (depths[i] < settings.SeaLevel) {
                 validPointCount++;
             }
         }
@@ -31,7 +31,8 @@ public class BathymetryPatcher{
 
         int currentIndex = 0;
         for (int i = 0; i < depthsCount; i++) {
-            if (depths[i] > settings.SeaLevel) continue;
+            // skip invalid points
+            if (depths[i] >= settings.SeaLevel) continue;
 
             float x = (i % width);
             float y = (i / width);
