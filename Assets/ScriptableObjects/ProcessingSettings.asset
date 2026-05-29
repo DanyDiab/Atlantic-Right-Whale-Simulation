@@ -16,5 +16,5 @@ MonoBehaviour:
   SeaLevel: 0
   MaxDepth: -10000
   numToRun: 1
-  noiseAmplitude: 5
+  noiseAmplitude: 8
   noiseFrequency: 5
