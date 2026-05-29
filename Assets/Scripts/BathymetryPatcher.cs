@@ -82,14 +82,15 @@ public class BathymetryPatcher{
                 float[] neighborPosition = nearest[j].Item1;
                 int originalIndex = nearest[j].Item2;
                 
-                float knownDepth = depths[originalIndex];
                 
                 float dx = target[0] - neighborPosition[0];
                 float dy = target[1] - neighborPosition[1];
                 float squaredDistance = (dx * dx) + (dy * dy);
 
+                float knownDepth = noise.addNoise(depths[originalIndex], target, size, dx + dy);
+
                 if (squaredDistance <= 0.0f) {
-                    depths[i] = noise.addNoise(knownDepth, target, size);
+                    depths[i] = knownDepth;
                     exactMatch = true;
                     break; 
                 }
@@ -103,7 +104,7 @@ public class BathymetryPatcher{
             {
                 float newValue = numerator / denominator;
  
-                depths[i] = noise.addNoise(newValue, target, size);
+                depths[i] = newValue;
             }
 
         }

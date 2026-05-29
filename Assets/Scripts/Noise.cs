@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Noise
 {
+
+// this is the min distance away that noise can commence at. (closer than this distance to a known point, there is no noise)
+    byte distanceMask = 2;
     
     ProcessingSettings settings;
 
@@ -9,10 +12,12 @@ public class Noise
     {
         this.settings = settings;
     }
-    public float addNoise(float depth, float[] pos, int[] size)
+    public float addNoise(float depth, float[] pos, int[] size, float distance)
     {
 
-        int numOctaves = 8;
+        byte mask = (byte)(distance < distanceMask ? 0 : 1);
+
+        byte numOctaves = 8;
 
         float frequency = settings.noiseFrequency;
         float amplitude = settings.noiseAmplitude;
@@ -41,6 +46,6 @@ public class Noise
 
         // float finalNoise = accumulatedNoise / totalAmplitude;
 
-        return depth + accumulatedNoise;
+        return depth + (accumulatedNoise * mask);
     }
 }
