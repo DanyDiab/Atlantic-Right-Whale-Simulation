@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Supercluster.KDTree.Standard</id>
+    <version>1.0.5</version>
+    <authors>Supercluster.KDTree.Standard</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <projectUrl>https://github.com/DurtyFree/Supercluster.KDTree</projectUrl>
+    <description>This is an extremely-fast and easy to use KDTree written entirely in modern C#.  This is the fastest and simplest to use KDTree that I have been able to find for .NET.  The project has thorough documentation and is open-source.  This module is a part of the larger Supercluster project.
+
+Tutorials and Wiki: https://github.com/pollyface/Supercluster.KDTree/wiki
+GitHub: https://github.com/DurtyFree/Supercluster.KDTree</description>
+    <repository type="git" url="https://github.com/DurtyFree/Supercluster.KDTree" commit="24dda5c78966c7187a26b482b5f1dce1ab085112" />
+    <dependencies>
+      <group targetFramework=".NETFramework4.6.1">
+        <dependency id="System.Reflection.TypeExtensions" version="4.7.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard1.3">
+        <dependency id="NETStandard.Library" version="1.6.1" exclude="Build,Analyzers" />
+        <dependency id="System.Reflection.TypeExtensions" version="4.7.0" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="System.Reflection.TypeExtensions" version="4.7.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
