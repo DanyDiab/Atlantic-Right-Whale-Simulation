@@ -25,11 +25,13 @@ public class BackscatterReader : MonoBehaviour
 
     }
 
-    void readInAllTiffs(string dir)
+    List<GeoTiffData> readInAllTiffs(string dir)
     {
+        List<GeoTiffData> geoTiffs = new List<GeoTiffData>();
+
         if(!Directory.Exists(dir)){
-            Debug.Log("The directory chosen is probably wrong: " + dir);
-            return;
+            Debug.LogError("The directory chosen is probably wrong: " + dir);
+            return geoTiffs;
         }
 
         string[] searchPatterns = {"*.bytes"};
@@ -37,11 +39,13 @@ public class BackscatterReader : MonoBehaviour
         
         IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
 
-
         foreach(string file in files)
         {
             GeoTiffData tiffData = fileUtil.ReadGeoTiff(file);
+            geoTiffs.Add(tiffData);
         }
+
+        return geoTiffs;
     }
 
 }
