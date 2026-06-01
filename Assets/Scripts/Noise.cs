@@ -12,12 +12,11 @@ public class Noise
     {
         this.settings = settings;
     }
-    public float addNoise(float depth, float[] pos, int[] size, float distance)
+    public float addNoiseToDepth(float depth, float[] pos, int[] size, float distance)
     {
 
         byte mask = (byte)(distance < distanceMask ? 0 : 1);
 
-        byte numOctaves = 8;
 
         float frequency = settings.noiseFrequency;
         float amplitude = settings.noiseAmplitude;
@@ -25,17 +24,28 @@ public class Noise
         float lacunarity = 2.2f;
         float persistence = .55f;
 
-        float totalAmplitude = 0f;
+        float x = pos[0] / size[0];
+        float y = pos[1] / size[1];
 
+        float accumulatedNoise = fBmNoise(x,y,frequency,amplitude,lacunarity,persistence,8);
+        
+
+        return depth + (accumulatedNoise * mask);
+    }
+
+// pos[1] / size[1]
+    public float fBmNoise(float x, float y, float startFreq, float startAmp, float lacunarity, float persistence, byte numOctaves)
+    {
         float accumulatedNoise = 0f;
+        float frequency = startFreq;
+        float amplitude = startAmp;
+
         for(int i = 0; i < numOctaves; i++)
         {
-            totalAmplitude += amplitude;
 
-            float normalizedX = pos[0] / size[0] * frequency;
-            float normalizedY = pos[1] / size[1] * frequency;
+            float normalizedX = x * frequency;
+            float normalizedY = y * frequency;
             float noise = ((Mathf.PerlinNoise(normalizedX, normalizedY) * 2) - 1) * amplitude;
-
 
             accumulatedNoise += noise;
 
@@ -44,8 +54,8 @@ public class Noise
             
         }
 
-        // float finalNoise = accumulatedNoise / totalAmplitude;
-
-        return depth + (accumulatedNoise * mask);
+        return accumulatedNoise;
     }
+
+
 }
