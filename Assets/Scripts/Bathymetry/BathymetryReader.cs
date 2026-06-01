@@ -13,6 +13,7 @@ public class BathymetryReader : MonoBehaviour {
     string writingDir;
     [SerializeField] ProcessingSettings processingSettings;
     BathymetryPatcher patcher;
+    FileUtilities fileUtil;
 
     [SerializeField] bool reloadReader = false;
 
@@ -30,7 +31,7 @@ public class BathymetryReader : MonoBehaviour {
 
     public void Start() {
         patcher = new BathymetryPatcher(processingSettings);
-
+        fileUtil = new FileUtilities();
         startPipeline();
 
     }
@@ -53,16 +54,15 @@ public class BathymetryReader : MonoBehaviour {
     private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
             using (BinaryWriter writer = new BinaryWriter(fs)) {
-                writer.Write(depthDataRecord.Width);
-                writer.Write(depthDataRecord.Height);
+                writer.Write(depthDataRecord.tiffData.Width);
+                writer.Write(depthDataRecord.tiffData.Height);
                 
                 writer.Write(depthDataRecord.ChunkPosition.x);
                 writer.Write(depthDataRecord.ChunkPosition.y);
-                writer.Write(depthDataRecord.AverageDepth);
 
-                writer.Write(depthDataRecord.Depths.Count);
+                writer.Write(depthDataRecord.tiffData.Data.Count);
                 
-                foreach (float depth in depthDataRecord.Depths) {
+                foreach (float depth in depthDataRecord.tiffData.Data) {
                     writer.Write(depth);
                 }
             }
@@ -170,71 +170,9 @@ public class BathymetryReader : MonoBehaviour {
         if (string.IsNullOrEmpty(filePath)) {
             return depthDataRecord;
         }
-
-        using (Tiff image = Tiff.Open(filePath, "r")) {
-            if (image == null) {
-                UnityEngine.Debug.LogError("Failed to open TIFF file at: " + filePath);
-                return depthDataRecord;
-            }
-
-            int width = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
-            int height = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
-            int bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
-
-            FieldValue[] scaleField = image.GetField(TiffTag.GEOTIFF_MODELPIXELSCALETAG);
-            
-            if (scaleField == null || scaleField.Length < 2) {
-                UnityEngine.Debug.LogError("Failed to read pixel scale tag for: " + filePath);
-                return depthDataRecord;
-            }
-
-            byte[] scaleBytes = scaleField[1].GetBytes(); 
-            double[] pixelScale = new double[3];
-            Buffer.BlockCopy(scaleBytes, 0, pixelScale, 0, scaleBytes.Length);
-
-            int scanlineSize = image.ScanlineSize();
-            byte[] buffer = new byte[scanlineSize];
-
-            depthDataRecord.Width = width;
-            depthDataRecord.Height = height;
-
-            List<float> localDepths = new List<float>(width * height);
-
-            for (int i = 0; i < height; i++)
-            {
-                if (!image.ReadScanline(buffer, i))
-                {
-                    UnityEngine.Debug.LogError("Error reading scanline " + i);
-                    break;
-                }
-
-                if (bitsPerSample == 32)
-                {
-                    for (int j = 0; j < scanlineSize; j += 4)
-                    {
-                        float depthValue = System.BitConverter.ToSingle(buffer, j);
-                        localDepths.Add(Math.Clamp(depthValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
-                    }
-                }
-                else if (bitsPerSample == 16)
-                {
-                    for (int j = 0; j < scanlineSize; j += 2)
-                    {
-                        ushort shortValue = System.BitConverter.ToUInt16(buffer, j);
-                        localDepths.Add(Math.Clamp((float)shortValue, processingSettings.MaxDepth, processingSettings.SeaLevel));
-                    }
-                }
-                else
-                {
-                    for (int j = 0; j < scanlineSize; j++)
-                    {
-                        localDepths.Add(Math.Clamp((float)buffer[j] / 255.0f, processingSettings.MaxDepth, processingSettings.SeaLevel));
-                    }
-                }
-            }
-
-            depthDataRecord.Depths = patcher.patchChunk(localDepths, width,height);
-        }
+        GeoTiffData data = fileUtil.ReadGeoTiff(filePath);
+        depthDataRecord.tiffData = data;
+        depthDataRecord.tiffData.Data = patcher.patchChunk(data.Data, data.Width, data.Height);
 
         return depthDataRecord;
     }

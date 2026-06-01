@@ -82,14 +82,13 @@ namespace MeshGeneration
             {
                 using (BinaryReader reader = new BinaryReader(fs))
                 {
-                    record.Width = reader.ReadInt32();
-                    record.Height = reader.ReadInt32();
+                    record.tiffData = new GeoTiffData();
+                    record.tiffData.Width = reader.ReadInt32();
+                    record.tiffData.Height = reader.ReadInt32();
 
                     int chunkX = reader.ReadInt32();
                     int chunkY = reader.ReadInt32();
                     record.ChunkPosition = new Vector2Int(chunkX, chunkY);
-
-                    record.AverageDepth = reader.ReadSingle();
 
                     int count = reader.ReadInt32();
 
@@ -104,8 +103,7 @@ namespace MeshGeneration
                     float[] depthsArray = new float[count];
 
                     Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
-
-                    record.Depths = new List<float>(depthsArray);
+                    record.tiffData.Data = new List<float>(depthsArray);
                 }
             }
 
@@ -170,10 +168,10 @@ namespace MeshGeneration
 
 
             
-            List<float> depths = record.Depths;
+            List<float> depths = record.tiffData.Data;
 
-            int height = record.Height;
-            int width = record.Width;
+            int height = record.tiffData.Height;
+            int width = record.tiffData.Width;
             float distanceBetweenPointsX = chunkSize / (width - 1);
             float distanceBetweenPointsZ = chunkSize / (height - 1);
 
