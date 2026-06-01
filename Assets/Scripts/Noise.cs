@@ -29,7 +29,6 @@ public class Noise
 
         float accumulatedNoise = fBmNoise(x,y,frequency,amplitude,lacunarity,persistence,8);
         
-
         return depth + (accumulatedNoise * mask);
     }
 
