@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using BitMiracle.LibTiff.Classic;
 using UnityEngine;
-
+using Newtonsoft.Json.Linq;
 
 public class BackscatterReader : MonoBehaviour
 {
@@ -21,10 +21,73 @@ public class BackscatterReader : MonoBehaviour
         string area = processingSettings.AreaToFilePath();
         path = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
 
-        readInAllTiffs(path);
-
+        List<GeoTiffData> data = readInAllTiffs(path);
+        processBS(data);
     }
 
+
+    void mapTexture(GeoTiffData tiffData)
+    {
+        int width = tiffData.Width;
+        int height = tiffData.Height;
+
+        Debug.LogFormat("W {0}\nH {1}", width, height);
+
+        List<float> intensities = tiffData.Data;
+
+        float max = intensities.Max();
+        float min = intensities.Min();
+
+        Debug.LogFormat("Min: {0}\nMax: {1}", min,max);
+        
+    }
+    
+    void processBS(List<GeoTiffData> geoTiffs)
+    {
+        foreach(GeoTiffData geoTiff in geoTiffs)
+        {
+            List<float> rawData = geoTiff.Data;
+
+            float min = rawData.Min();
+            float max = rawData.Max();
+
+            float range = max - min;
+            List<float> normalized = new List<float>(rawData.Count);
+
+            foreach(float dataPoint in rawData)
+            {
+            
+                float normal = (dataPoint - min) / range;
+                normalized.Add(normal);
+            }
+
+            geoTiff.Data = normalized;
+            mapTexture(geoTiff);
+        }
+    }
+
+    float[] readInJSON(string filePath)
+    {
+        if (!File.Exists(filePath)) {
+            return new float[2] { 0.0f, 0.0f };
+        }
+
+        string jsonContent = File.ReadAllText(filePath);
+        JObject jsonObject = JObject.Parse(jsonContent);
+
+        JToken intensityRange = jsonObject["productDefaults"]["intensityRange"];
+        if (intensityRange == null) {
+            return new float[2] { 0.0f, 0.0f };
+        }
+
+        string minStr = intensityRange["intensityRangeMin"]?.ToString();
+        string maxStr = intensityRange["intensityRangeMax"]?.ToString();
+
+        float min = float.TryParse(minStr, out float parsedMin) ? parsedMin : 0.0f;
+        float max = float.TryParse(maxStr, out float parsedMax) ? parsedMax : 0.0f;
+
+        return new float[2] { min, max };
+    }
     List<GeoTiffData> readInAllTiffs(string dir)
     {
         List<GeoTiffData> geoTiffs = new List<GeoTiffData>();
@@ -34,14 +97,21 @@ public class BackscatterReader : MonoBehaviour
             return geoTiffs;
         }
 
-        string[] searchPatterns = {"*.bytes"};
+        string[] binSearchPattern = {"*.bytes"};
+        string[] jsonSearchPattern = {"*.json"};
 
+
+        IEnumerable<string> binFiles = binSearchPattern.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
         
-        IEnumerable<string> files = searchPatterns.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
+        IEnumerable<string> jsonFiles = jsonSearchPattern.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
 
-        foreach(string file in files)
+        for(int i = 0; i < binFiles.Count(); i++)
         {
-            GeoTiffData tiffData = fileUtil.ReadGeoTiff(file);
+            string binFile = binFiles.ElementAt(i);
+            string jsonFile = jsonFiles.ElementAt(i);
+
+            float[] range = readInJSON(jsonFile);
+            GeoTiffData tiffData = fileUtil.ReadGeoTiff(binFile, range);
             geoTiffs.Add(tiffData);
         }
 

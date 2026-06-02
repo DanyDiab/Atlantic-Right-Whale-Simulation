@@ -72,6 +72,7 @@ public class BathymetryReader : MonoBehaviour {
     private void generateChunkOffsets(List<DepthDataRecord> records, List<string> fileNames){
 
         Vector2Int min = new Vector2Int(int.MaxValue, int.MaxValue);
+        Vector2Int max = new Vector2Int(int.MinValue, int.MinValue);
 
         int numRecords = records.Count;
         List<Vector2Int> coordsList = new List<Vector2Int>(numRecords);
@@ -88,17 +89,29 @@ public class BathymetryReader : MonoBehaviour {
                 min.y = coords.y;
             }
 
+            if(coords.x > max.x)
+            {
+                max.x = coords.x;
+            }
+            
+            if(coords.y > max.y)
+            {
+                max.y = coords.y;
+            }
+
             coordsList.Add(coords);
         }
 
         for(int i = 0; i < numRecords; i++){
-            DepthDataRecord record = records[i];
 
+            DepthDataRecord record = records[i];
             Vector2Int coord = coordsList[i];
 
             Vector2Int normalized = (coord - min) / 10;
-
             record.ChunkPosition = normalized;
+
+            Vector2 chunkCoord = coord / 10;
+            record.ChunkCoords = chunkCoord;
 
             records[i] = record;
         }
@@ -170,7 +183,8 @@ public class BathymetryReader : MonoBehaviour {
         if (string.IsNullOrEmpty(filePath)) {
             return depthDataRecord;
         }
-        GeoTiffData data = fileUtil.ReadGeoTiff(filePath);
+        
+        GeoTiffData data = fileUtil.ReadGeoTiff(filePath, new float[]{processingSettings.MaxDepth, processingSettings.SeaLevel});
         depthDataRecord.tiffData = data;
         depthDataRecord.tiffData.Data = patcher.patchChunk(data.Data, data.Width, data.Height);
 
