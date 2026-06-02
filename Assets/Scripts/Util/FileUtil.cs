@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BitMiracle.LibTiff.Classic;
 using UnityEngine;
 
@@ -19,10 +20,20 @@ public class FileUtilities
             int width = image.GetField(TiffTag.IMAGEWIDTH)[0].ToInt();
             int height = image.GetField(TiffTag.IMAGELENGTH)[0].ToInt();
             int bitsPerSample = image.GetField(TiffTag.BITSPERSAMPLE)[0].ToInt();
+            FieldValue[] tiepointField = image.GetField(TiffTag.GEOTIFF_MODELTIEPOINTTAG);
+
+
+            double[] tiePoints = tiepointField[1].ToDoubleArray();
+
+            float startingLong = (float)tiePoints[3];
+            float startingLat = (float)tiePoints[4];
+
+            Vector2 startingCoords = new Vector2(startingLong, startingLat);
+
 
             FieldValue[] scaleField = image.GetField(TiffTag.GEOTIFF_MODELPIXELSCALETAG);
             if (scaleField == null || scaleField.Length < 2) {
-                UnityEngine.Debug.LogError("Failed to read pixel scale tag for: " + filePath);
+                Debug.LogError("Failed to read pixel scale tag for: " + filePath);
                 return null;
             }
 
@@ -41,6 +52,7 @@ public class FileUtilities
             GeoTiffData result = new GeoTiffData();
             result.Width = width;
             result.Height = height;
+            result.startCoordsMeters = startingCoords;
             result.PixelScale = pixelScale;
             result.Data = new List<float>(rawDataArray);
 

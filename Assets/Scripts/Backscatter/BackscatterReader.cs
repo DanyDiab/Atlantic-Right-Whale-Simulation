@@ -25,20 +25,33 @@ public class BackscatterReader : MonoBehaviour
         processBS(data);
     }
 
-
-    void mapTexture(GeoTiffData tiffData)
+// min lat, max lat, min long, max long
+    Vector4 getBoundingBox(GeoTiffData tiffData)
     {
         int width = tiffData.Width;
         int height = tiffData.Height;
 
-        Debug.LogFormat("W {0}\nH {1}", width, height);
+        float[] pixelScale = Array.ConvertAll(tiffData.PixelScale, x => (float)x);
 
-        List<float> intensities = tiffData.Data;
+        Vector2 startingCoords = tiffData.startCoordsMeters;
 
-        float max = intensities.Max();
-        float min = intensities.Min();
+        float maxLat = startingCoords.y + (height * pixelScale[1]);
+        float maxLong = startingCoords.x + (width * pixelScale[0]);
+        
+        Vector4 bbox = new Vector4(startingCoords.x, maxLong, startingCoords.y, maxLat);
 
-        Debug.LogFormat("Min: {0}\nMax: {1}", min,max);
+
+        Debug.Log(bbox);
+        return bbox;
+        
+    }
+
+    void mapTexture(GeoTiffData tiffData)
+    {
+        
+        
+        // List<float> intensities = tiffData.Data;
+
         
     }
     
@@ -62,7 +75,7 @@ public class BackscatterReader : MonoBehaviour
             }
 
             geoTiff.Data = normalized;
-            mapTexture(geoTiff);
+            getBoundingBox(geoTiff);
         }
     }
 

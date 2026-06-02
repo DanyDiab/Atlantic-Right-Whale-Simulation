@@ -111,7 +111,7 @@ public class BathymetryReader : MonoBehaviour {
             record.ChunkPosition = normalized;
 
             Vector2 chunkCoord = coord / 10;
-            record.ChunkCoords = chunkCoord;
+            record.tiffData.startCoordsMeters = chunkCoord;
 
             records[i] = record;
         }
