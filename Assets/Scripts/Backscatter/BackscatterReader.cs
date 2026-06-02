@@ -5,7 +5,6 @@ using System.Linq;
 using BitMiracle.LibTiff.Classic;
 using UnityEngine;
 using Newtonsoft.Json.Linq;
-
 public class BackscatterReader : MonoBehaviour
 {
     string path;
@@ -25,7 +24,7 @@ public class BackscatterReader : MonoBehaviour
         processBS(data);
     }
 
-// min lat, max lat, min long, max long
+// min x, max x, min y, max y
     Vector4 getBoundingBox(GeoTiffData tiffData)
     {
         int width = tiffData.Width;
@@ -35,10 +34,10 @@ public class BackscatterReader : MonoBehaviour
 
         Vector2 startingCoords = tiffData.startCoordsMeters;
 
-        float maxLat = startingCoords.y + (height * pixelScale[1]);
-        float maxLong = startingCoords.x + (width * pixelScale[0]);
+        float maxX = startingCoords.y + (height * pixelScale[1]);
+        float maxY = startingCoords.x + (width * pixelScale[0]);
         
-        Vector4 bbox = new Vector4(startingCoords.x, maxLong, startingCoords.y, maxLat);
+        Vector4 bbox = new Vector4(startingCoords.x, maxY, startingCoords.y, maxX);
 
 
         Debug.Log(bbox);

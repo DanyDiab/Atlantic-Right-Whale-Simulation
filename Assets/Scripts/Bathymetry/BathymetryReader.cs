@@ -6,6 +6,8 @@ using System;
 using System.Linq;
 using Unity.VisualScripting;
 using Unity.ProjectAuditor.Editor;
+using ProjNet;
+using ProjNet.CoordinateSystems;
 
 public class BathymetryReader : MonoBehaviour {
 
@@ -169,10 +171,15 @@ public class BathymetryReader : MonoBehaviour {
         string northStr = northSplit[0];
         string westStr = northSplit[1].Substring(0,northSplit[1].Length - 1);
 
-
         int north = int.Parse(northStr);
         int west = int.Parse(westStr);
 
+        float lat = north / 100f;
+        float lon = -(west / 100f);
+
+        Vector2 coords = new Vector2(lon, lat);
+        Vector2 utm = CoordToUTM.Convert(coords);
+        Debug.LogFormat("Coords {0}\nUTM {1}", coords, utm);
         return new Vector2Int(west, north);
     }
 
