@@ -73,46 +73,37 @@ public class BathymetryReader : MonoBehaviour {
 
     private void generateChunkOffsets(List<DepthDataRecord> records, List<string> fileNames){
 
-        Vector2Int min = new Vector2Int(int.MaxValue, int.MaxValue);
-        Vector2Int max = new Vector2Int(int.MinValue, int.MinValue);
+        Vector2 min = new Vector2(int.MaxValue, int.MaxValue);
 
         int numRecords = records.Count;
-        List<Vector2Int> coordsList = new List<Vector2Int>(numRecords);
+        List<Vector2> coordsList = new List<Vector2>(numRecords);
         for(int i = 0; i < numRecords; i++){
             string filename = fileNames[i];
 
-            Vector2Int coords = parseCoords(filename);
+            Tuple<Vector2,Vector2> coords = parseCoords(filename);
+            Vector2 utm = coords.Item1;
+            Vector2 geoCoords = coords.Item2;
 
-            if(coords.x < min.x){
-                min.x = coords.x;
+            if(utm.x < min.x){
+                min.x = utm.x;
             }
             
-            if(coords.y < min.y){
-                min.y = coords.y;
+            if(utm.y < min.y){
+                min.y = utm.y;
             }
 
-            if(coords.x > max.x)
-            {
-                max.x = coords.x;
-            }
-            
-            if(coords.y > max.y)
-            {
-                max.y = coords.y;
-            }
-
-            coordsList.Add(coords);
+            coordsList.Add(utm);
         }
 
         for(int i = 0; i < numRecords; i++){
 
             DepthDataRecord record = records[i];
-            Vector2Int coord = coordsList[i];
+            Vector2 coord = coordsList[i];
 
-            Vector2Int normalized = (coord - min) / 10;
+            Vector2 normalized = coord - min;
             record.ChunkPosition = normalized;
 
-            Vector2 chunkCoord = coord / 10;
+            Vector2 chunkCoord = coord;
             record.tiffData.startCoordsMeters = chunkCoord;
 
             records[i] = record;
@@ -163,7 +154,7 @@ public class BathymetryReader : MonoBehaviour {
     }
 
 
-    private Vector2Int parseCoords(string fileName){
+    private Tuple<Vector2, Vector2> parseCoords(string fileName){
         string nameWithExt = fileName.Split("_")[1];
         string extractedName = nameWithExt.Split(".")[0];
 
@@ -179,8 +170,8 @@ public class BathymetryReader : MonoBehaviour {
 
         Vector2 coords = new Vector2(lon, lat);
         Vector2 utm = CoordToUTM.Convert(coords);
-        Debug.LogFormat("Coords {0}\nUTM {1}", coords, utm);
-        return new Vector2Int(west, north);
+        Tuple<Vector2, Vector2> data = new Tuple<Vector2, Vector2>(utm, coords);
+        return data;
     }
 
 

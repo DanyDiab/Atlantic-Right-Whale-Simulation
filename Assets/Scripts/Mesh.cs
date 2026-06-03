@@ -86,9 +86,9 @@ namespace MeshGeneration
                     record.tiffData.Width = reader.ReadInt32();
                     record.tiffData.Height = reader.ReadInt32();
 
-                    int chunkX = reader.ReadInt32();
-                    int chunkY = reader.ReadInt32();
-                    record.ChunkPosition = new Vector2Int(chunkX, chunkY);
+                    float chunkX = reader.ReadSingle();
+                    float chunkY = reader.ReadSingle();
+                    record.ChunkPosition = new Vector2(chunkX, chunkY);
 
                     int count = reader.ReadInt32();
 
@@ -141,9 +141,9 @@ namespace MeshGeneration
         {
             foreach (DepthDataRecord record in records)
             {
-                Vector2Int chunkPos = record.ChunkPosition;
-                int west = chunkPos.x * chunkSize;
-                int north = chunkPos.y * chunkSize;
+                Vector2 chunkPos = record.ChunkPosition;
+                int west = Mathf.FloorToInt(chunkPos.x);
+                int north = Mathf.FloorToInt(chunkPos.y);
 
                 UnityMesh chunkMesh = generateMeshData(record);
                 GameObject chunkObject = new GameObject("TerrainChunk_W" + west + "_N" + north);
