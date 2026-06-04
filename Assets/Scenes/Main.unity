@@ -1001,7 +1001,7 @@ MonoBehaviour:
   chunkSize: 1000
   parent: {fileID: 1413146681}
   processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
-  meshMaterial: {fileID: 2100000, guid: 88958d9b97218f342984e2d49b86476e, type: 2}
+  meshMaterial: {fileID: 2100000, guid: 8318902aa4672ee4f9ed7147dbc63e98, type: 2}
   reloadMesh: 0
 --- !u!114 &494815523
 MonoBehaviour:

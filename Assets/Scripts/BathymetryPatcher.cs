@@ -87,7 +87,7 @@ public class BathymetryPatcher{
                 float dy = target[1] - neighborPosition[1];
                 float squaredDistance = (dx * dx) + (dy * dy);
 
-                float knownDepth = noise.addNoise(depths[originalIndex], target, size, dx + dy);
+                float knownDepth = noise.addNoiseToDepth(depths[originalIndex], target, size, dx + dy);
 
                 if (squaredDistance <= 0.0f) {
                     depths[i] = knownDepth;
