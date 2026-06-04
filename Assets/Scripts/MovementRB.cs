@@ -2,10 +2,11 @@ using UnityEngine;
 
 
 
-public class Movement : MonoBehaviour
+public class MovementRB : MonoBehaviour
 {
     CameraControls controls;
-    float StartposZ;
+    Vector3 startPosition;
+    bool resetTriggered;
     public float speed = 5f;
     Rigidbody rb;
 
@@ -13,6 +14,7 @@ public class Movement : MonoBehaviour
     {
         controls = new CameraControls();
         rb = GetComponent<Rigidbody>();
+        startPosition = transform.position;
     }
 
     void OnEnable()
@@ -25,20 +27,25 @@ public class Movement : MonoBehaviour
         controls.Disable();
     }
 
-    void Start()
-    {
-        StartposZ = transform.position.z;
-    }
+
 
    void FixedUpdate()
     {
+        if (resetTriggered)
+        {
+            transform.position = startPosition; 
+            resetTriggered = false;
+            return; 
+        }
+
         // Move forward by speed amount 
-        Vector3 newPosition = rb.position + transform.forward * speed * Time.fixedDeltaTime;
+        Vector3 newPosition = rb.position + Vector3.forward * speed * Time.fixedDeltaTime;
         rb.MovePosition(newPosition);
 
+    }
+    void Update()
+    {
         if (controls.Player.Reset.triggered)
-        {
-            rb.MovePosition(new Vector3(0, 5, 0));
-        }
+            resetTriggered = true;
     }
 }
