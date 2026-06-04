@@ -7,6 +7,7 @@ using System;
 using UnityEngine.UIElements;
 
 using UnityMesh = UnityEngine.Mesh;
+using UnityEngine.InputSystem;
 
 namespace MeshGeneration
 {
@@ -33,11 +34,15 @@ namespace MeshGeneration
         {
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
-            startMeshPipeline();
+            // startMeshPipeline();
         }
 
         void Update()
         {
+            if (Keyboard.current.mKey.isPressed)
+            {
+                reloadMesh = true;
+            }
             if(!reloadMesh) return;
             
             clearOldChunks();

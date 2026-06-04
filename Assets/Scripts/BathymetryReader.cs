@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Unity.VisualScripting;
 using Unity.ProjectAuditor.Editor;
+using UnityEngine.InputSystem;
 
 public class BathymetryReader : MonoBehaviour {
 
@@ -21,6 +22,11 @@ public class BathymetryReader : MonoBehaviour {
 
     void Update()
     {
+
+        if (Keyboard.current.bKey.isPressed)
+        {
+            reloadReader = true;
+        }
         if(!reloadReader) return;
 
         startPipeline();
@@ -31,7 +37,7 @@ public class BathymetryReader : MonoBehaviour {
     public void Start() {
         patcher = new BathymetryPatcher(processingSettings);
 
-        startPipeline();
+        // startPipeline();
 
     }
 
