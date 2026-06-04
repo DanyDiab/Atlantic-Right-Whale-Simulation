@@ -7,12 +7,10 @@ public class Movement : MonoBehaviour
     CameraControls controls;
     float StartposZ;
     public float speed = 5f;
-    Rigidbody rb;
 
     void Awake()
     {
         controls = new CameraControls();
-        rb = GetComponent<Rigidbody>();
     }
 
     void OnEnable()
@@ -30,15 +28,15 @@ public class Movement : MonoBehaviour
         StartposZ = transform.position.z;
     }
 
-   void FixedUpdate()
+    void Update()
     {
-        // Move forward by speed amount 
-        Vector3 newPosition = rb.position + transform.forward * speed * Time.fixedDeltaTime;
-        rb.MovePosition(newPosition);
+        float movez = speed * Time.deltaTime;
+        transform.Translate(0, 0, movez);
 
+        // IF reset button pressed then reset position
         if (controls.Player.Reset.triggered)
         {
-            rb.MovePosition(new Vector3(0, 5, 0));
+            transform.position = new Vector3(0, 5, 0);
         }
     }
 }
