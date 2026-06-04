@@ -26,6 +26,7 @@ public class WhaleMovementMotionData : MonoBehaviour
     void Start()
     {
         LoadCSV();
+        startPos = transform.position;
     }
  void Awake()
     {
