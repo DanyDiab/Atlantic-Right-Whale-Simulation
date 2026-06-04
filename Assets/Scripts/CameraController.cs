@@ -100,10 +100,14 @@ public class CameraController : MonoBehaviour{
         pitch -= lookInput.y * orbitSensitivity;
         pitch = Mathf.Clamp(pitch, -80, 80);
         
+  
         
+
+
         // calculate zoom based on up/down input (basically how close to the target))
         float zoom   = upDownInput.y * moveSpeed * Time.deltaTime;
-
+        
+    
         // apply zoom to base orbit distance
         orbitDistance += zoom;
         // take the max of orbit to prevent from going through the target

@@ -571,6 +571,17 @@
                 },
                 {
                     "name": "",
+                    "id": "9897074d-6f13-4513-9733-2c2109c58f0c",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "Scale(factor=4),ScaleVector2(y=8)",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "Up/Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "02af54f6-8558-40cb-89a5-349d4267386e",
                     "path": "<Keyboard>/#(R)",
                     "interactions": "",
