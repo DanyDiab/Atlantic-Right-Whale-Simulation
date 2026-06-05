@@ -1,10 +1,7 @@
 using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
-using Stopwatch = System.Diagnostics.Stopwatch;
-using System.Linq;
 using System;
-using UnityEngine.UIElements;
 
 using UnityMesh = UnityEngine.Mesh;
 using UnityEngine.InputSystem;
@@ -34,7 +31,6 @@ namespace MeshGeneration
         {
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
-            // startMeshPipeline();
         }
 
         void Update()
