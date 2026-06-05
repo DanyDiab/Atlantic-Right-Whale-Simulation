@@ -9,23 +9,15 @@ using UnityEngine.SceneManagement;
 public class SceneSwitcher : MonoBehaviour
 {
 
-    SceneSwitcher instance;
 
     [SerializeField] List<string> scenes;
 
-    void Awake()
-    {
-        if(instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else {
-            Destroy(gameObject);
-        }
-    }
+    string currScene;
+
+
     void Start()
     {
+        currScene = SceneManager.GetActiveScene().name;
     }
 
     void Update()
@@ -35,26 +27,33 @@ public class SceneSwitcher : MonoBehaviour
             Application.Quit();
         }
 
-
         if (Keyboard.current.digit1Key.isPressed)
         {
+
             changeScene(scenes[0]);
         }
         if (Keyboard.current.digit2Key.isPressed)
         {
+
             changeScene(scenes[1]);
         }
-        if (Keyboard.current.digit2Key.isPressed)
+        if (Keyboard.current.digit3Key.isPressed)
         {
+
             changeScene(scenes[2]);
-        }
+        }  
            
     }
 
 
     void changeScene(string scene)
     {
+        if(currScene == scene) return;
 
+        Debug.LogFormat("curr: {0}\nScene {1}",currScene, scene);
+
+        currScene = scene;
         SceneManager.LoadScene(scene);
+
     }
 }

@@ -90,7 +90,7 @@ public class CameraController : MonoBehaviour{
                         transform.up * upDownInput.y;
         transform.position += move * speed * Time.deltaTime;
     }
-    void UpdateOrbit(){   
+    void UpdateOrbit(){
 
         // If no target, do nothing
         if (orbitTarget == null) return;
@@ -100,10 +100,6 @@ public class CameraController : MonoBehaviour{
         pitch -= lookInput.y * orbitSensitivity;
         pitch = Mathf.Clamp(pitch, -80, 80);
         
-  
-        
-
-
         // calculate zoom based on up/down input (basically how close to the target))
         float zoom   = upDownInput.y * moveSpeed * Time.deltaTime;
         

@@ -903,7 +903,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 494815520}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d43fc5e49c2818cc4bf25f0414aa9e27, type: 3}
   m_Name: 
@@ -1518,37 +1518,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 825752500}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!1 &842914372
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 842914373}
-  m_Layer: 0
-  m_Name: SceneManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &842914373
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 842914372}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -16253.591, y: -0.00002, z: 67720.195}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &850291284 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -7327947812180604204, guid: c3dd9e0cc9aadac49b3ddec75245af86, type: 3}
@@ -1634,6 +1603,54 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5189942375185008633, guid: c3dd9e0cc9aadac49b3ddec75245af86, type: 3}
+--- !u!1 &861356812
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 861356814}
+  - component: {fileID: 861356813}
+  m_Layer: 0
+  m_Name: Scene Switcher
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &861356813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861356812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97501cb128832da4caabf7e2b5a92d6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSwitcher
+  scenes:
+  - Main
+  - UnityDemo
+  - ObiRopeDemo
+--- !u!4 &861356814
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861356812}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 49.47011, y: -0, z: 2.80477}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1069698026 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c3dd9e0cc9aadac49b3ddec75245af86, type: 3}
@@ -1656,7 +1673,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06e3e276d3e3d304fb62ae772f004b03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WhaleMovementMotionData
-  csvData: {fileID: 4900000, guid: ad1392c26444b5e4ba48ac44905f5465, type: 3}
+  csvData: {fileID: 4900000, guid: fc188e5628ae24947ba6bbf6d2d72ec3, type: 3}
   motionDataPacketList: []
   positionSmoothSpeed: 0.5
   rotationSmoothSpeed: 0.5
@@ -1997,7 +2014,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\nR - Reset  \nScroll - Zoom    \nMouse - Look      "
+  m_text: "<b>R</b> - Reset  \n<b>Scroll</b> - Zoom    \n<b>Mouse</b>- Look\n<b>M</b>-
+    Reset Mesh\n<size=10>Expensive Operation   </size><b>B</b>- Load Bathymetry      "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3616,9 +3634,9 @@ MeshFilter:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 842914373}
   - {fileID: 1341532194}
   - {fileID: 1375440839}
   - {fileID: 1205938770}
   - {fileID: 133573337}
   - {fileID: 746168256}
+  - {fileID: 861356814}

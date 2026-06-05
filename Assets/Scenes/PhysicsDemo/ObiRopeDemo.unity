@@ -7100,6 +7100,54 @@ Transform:
   - {fileID: 2060898352}
   m_Father: {fileID: 677795480}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1903924783
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1903924785}
+  - component: {fileID: 1903924784}
+  m_Layer: 0
+  m_Name: Scene Switcher
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1903924784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903924783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97501cb128832da4caabf7e2b5a92d6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneSwitcher
+  scenes:
+  - Main
+  - UnityDemo
+  - ObiRopeDemo
+--- !u!4 &1903924785
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1903924783}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 49.47011, y: -0, z: 2.80477}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1931166353 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3634313713066839450, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
@@ -7996,7 +8044,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\nR - Reset  \nScroll - Zoom    \nMouse - Look      "
+  m_text: "<b>R</b> - Reset  \n<b>Scroll</b> - Zoom    \n<b>Mouse</b>- Look\n<b>M</b>-
+    Reset Mesh\n<size=10>Expensive Operation   </size><b>B</b>- Load Bathymetry      "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -8088,3 +8137,4 @@ SceneRoots:
   - {fileID: 1577032698}
   - {fileID: 1544279684}
   - {fileID: 232816807}
+  - {fileID: 1903924785}
