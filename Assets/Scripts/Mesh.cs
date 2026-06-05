@@ -31,6 +31,7 @@ namespace MeshGeneration
         {
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
+            reloadMesh = true;
         }
 
         void Update()

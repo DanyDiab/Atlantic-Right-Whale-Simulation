@@ -687,7 +687,7 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
                     ""id"": ""9897074d-6f13-4513-9733-2c2109c58f0c"",
                     ""path"": ""<Mouse>/scroll"",
                     ""interactions"": """",
-                    ""processors"": ""Scale(factor=4),ScaleVector2(y=8)"",
+                    ""processors"": ""Scale(factor=8),ScaleVector2(y=8)"",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Up/Down"",
                     ""isComposite"": false,
