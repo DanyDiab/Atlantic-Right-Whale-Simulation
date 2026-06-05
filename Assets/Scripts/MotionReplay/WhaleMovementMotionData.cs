@@ -18,17 +18,24 @@ public class WhaleMovementMotionData : MonoBehaviour
 
     private int currentItemIndex = 0;
     private Vector3 startPos;
+    private Quaternion startRot;
 
     private Vector3 targetPosition;
     private Quaternion targetRotation;
 
+    [SerializeField] Animator animator;
 
     void Start()
     {
         LoadCSV();
+
+
     }
  void Awake()
     {
+        startPos = transform.position;
+        startRot = transform.rotation;
+
         controls = new CameraControls();
     }
 
@@ -42,25 +49,14 @@ public class WhaleMovementMotionData : MonoBehaviour
         controls.Disable();
     }
 
-    /// <summary>
-    /// Loads CSV Data from Selected file
-    /// </summary>
     void LoadCSV()
     {
         // Split file into lines 
         string[] lines = csvData.text.Split(new char[] { '\n', '\r' }, System.StringSplitOptions.RemoveEmptyEntries);
 
-        // Start at index 1 to skip the header row
         for (int i = 1; i < lines.Length; i++)
         {
             string[] values = lines[i].Split(',');
-
-            // string debugMessage = $"Row {i} Split Count: {values.Length}\n";
-            // for (int j = 0; j < values.Length; j++)
-            // {
-            //     debugMessage += $"  [{j}]: '{values[j]}'\n";
-            // }
-            // Debug.Log(debugMessage);
 
             if (values.Length >= cols.Length) 
             {
@@ -84,14 +80,14 @@ public class WhaleMovementMotionData : MonoBehaviour
         Debug.Log("Loaded " + motionDataPacketList.Count + " items from CSV.");
     }
 
-  void Update()
+  void FixedUpdate()
 {
-    //verify list isnt empy
+
     if (motionDataPacketList.Count == 0) return;
 
     //use lerp and slerp to adjust to target
-    transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * positionSmoothSpeed);
-    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSmoothSpeed);
+    transform.position = Vector3.Lerp(transform.position, targetPosition, Time.fixedDeltaTime * positionSmoothSpeed);
+    transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.fixedDeltaTime * rotationSmoothSpeed);
     
     // get next csv packet
     if (currentItemIndex < motionDataPacketList.Count)
@@ -122,7 +118,7 @@ public class WhaleMovementMotionData : MonoBehaviour
         targetRotation = Quaternion.Euler(currentPacket.pitch, currentPacket.head, currentPacket.roll);
 
         // Calculate next forward step target
-        Vector3 forwardStep = targetRotation * Vector3.forward * currentPacket.speed * (Time.deltaTime*10);
+        Vector3 forwardStep = targetRotation * Vector3.forward * currentPacket.speed * (Time.fixedDeltaTime*10);
         targetPosition += forwardStep;
 
         // Apply depth to the target position
@@ -136,12 +132,14 @@ public class WhaleMovementMotionData : MonoBehaviour
         Debug.Log("Reached end of File");
     }
 
-    //reset pos if hit r
-    if (controls.Player.Reset.triggered)
-    {
+    if (controls.Player.Reset.triggered){
+
         transform.position = startPos;
-        targetPosition = startPos; 
+        transform.rotation = startRot;
+        animator.Play("R Whale Armature|Whale Swimming",0,0);
         currentItemIndex = 0;      
     }
+
+
 }
 }

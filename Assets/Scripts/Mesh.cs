@@ -1,12 +1,10 @@
 using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
-using Stopwatch = System.Diagnostics.Stopwatch;
-using System.Linq;
 using System;
-using UnityEngine.UIElements;
 
 using UnityMesh = UnityEngine.Mesh;
+using UnityEngine.InputSystem;
 
 namespace MeshGeneration
 {
@@ -33,11 +31,15 @@ namespace MeshGeneration
         {
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
-            startMeshPipeline();
+            reloadMesh = true;
         }
 
         void Update()
         {
+            if (Keyboard.current.mKey.isPressed)
+            {
+                reloadMesh = true;
+            }
             if(!reloadMesh) return;
             
             clearOldChunks();

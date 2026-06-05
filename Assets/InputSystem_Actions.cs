@@ -190,6 +190,33 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Scene1"",
+                    ""type"": ""Button"",
+                    ""id"": ""d1ceed83-93f0-435a-804d-e1e0b776c126"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Scene2"",
+                    ""type"": ""Button"",
+                    ""id"": ""e408affa-8175-4b7a-b2cf-508676c3179f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Scene3"",
+                    ""type"": ""Button"",
+                    ""id"": ""dd3a2f11-7424-4148-bdef-3b2d33868f56"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -660,7 +687,7 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
                     ""id"": ""9897074d-6f13-4513-9733-2c2109c58f0c"",
                     ""path"": ""<Mouse>/scroll"",
                     ""interactions"": """",
-                    ""processors"": ""Scale(factor=4),ScaleVector2(y=8)"",
+                    ""processors"": ""Scale(factor=8),ScaleVector2(y=8)"",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Up/Down"",
                     ""isComposite"": false,
@@ -674,6 +701,39 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
                     ""action"": ""Reset"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dab2d53d-d5e5-4e7e-8528-e9e9ceaa2c06"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Scene1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c4080d40-1882-44a1-acb1-df3f5b1a35dc"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Scene2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""82e07e37-4395-4392-b17e-b06870d024b1"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Scene3"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1272,6 +1332,9 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
         m_Player_UpDown = m_Player.FindAction("Up/Down", throwIfNotFound: true);
         m_Player_Reset = m_Player.FindAction("Reset", throwIfNotFound: true);
+        m_Player_Scene1 = m_Player.FindAction("Scene1", throwIfNotFound: true);
+        m_Player_Scene2 = m_Player.FindAction("Scene2", throwIfNotFound: true);
+        m_Player_Scene3 = m_Player.FindAction("Scene3", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1376,6 +1439,9 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Sprint;
     private readonly InputAction m_Player_UpDown;
     private readonly InputAction m_Player_Reset;
+    private readonly InputAction m_Player_Scene1;
+    private readonly InputAction m_Player_Scene2;
+    private readonly InputAction m_Player_Scene3;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1431,6 +1497,18 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Reset".
         /// </summary>
         public InputAction @Reset => m_Wrapper.m_Player_Reset;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Scene1".
+        /// </summary>
+        public InputAction @Scene1 => m_Wrapper.m_Player_Scene1;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Scene2".
+        /// </summary>
+        public InputAction @Scene2 => m_Wrapper.m_Player_Scene2;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Scene3".
+        /// </summary>
+        public InputAction @Scene3 => m_Wrapper.m_Player_Scene3;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1490,6 +1568,15 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
             @Reset.started += instance.OnReset;
             @Reset.performed += instance.OnReset;
             @Reset.canceled += instance.OnReset;
+            @Scene1.started += instance.OnScene1;
+            @Scene1.performed += instance.OnScene1;
+            @Scene1.canceled += instance.OnScene1;
+            @Scene2.started += instance.OnScene2;
+            @Scene2.performed += instance.OnScene2;
+            @Scene2.canceled += instance.OnScene2;
+            @Scene3.started += instance.OnScene3;
+            @Scene3.performed += instance.OnScene3;
+            @Scene3.canceled += instance.OnScene3;
         }
 
         /// <summary>
@@ -1534,6 +1621,15 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
             @Reset.started -= instance.OnReset;
             @Reset.performed -= instance.OnReset;
             @Reset.canceled -= instance.OnReset;
+            @Scene1.started -= instance.OnScene1;
+            @Scene1.performed -= instance.OnScene1;
+            @Scene1.canceled -= instance.OnScene1;
+            @Scene2.started -= instance.OnScene2;
+            @Scene2.performed -= instance.OnScene2;
+            @Scene2.canceled -= instance.OnScene2;
+            @Scene3.started -= instance.OnScene3;
+            @Scene3.performed -= instance.OnScene3;
+            @Scene3.canceled -= instance.OnScene3;
         }
 
         /// <summary>
@@ -1911,6 +2007,27 @@ public partial class @CameraControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnReset(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Scene1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnScene1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Scene2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnScene2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Scene3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnScene3(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

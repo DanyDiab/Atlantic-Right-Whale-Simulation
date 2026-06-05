@@ -8,7 +8,7 @@ public class CameraController : MonoBehaviour{
 
     [Header("Orbit")]
     public Transform orbitTarget;
-    public float orbitDistance = 10f;
+    public float orbitDistance = 20f;
     public float orbitSensitivity = 2f;
 
     CameraControls controls;
@@ -19,9 +19,10 @@ public class CameraController : MonoBehaviour{
     bool isFreeCam = false;
     float yaw;
     float pitch;
+    [SerializeField] bool locked;
 
     void Awake(){
-
+        locked = false;
         controls = new CameraControls();
 
         controls.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
@@ -56,14 +57,19 @@ public class CameraController : MonoBehaviour{
         // Main update loop
 
         // Toggle between free cam and orbit mode with F key
+        if (Keyboard.current.lKey.wasPressedThisFrame)
+        {
+            locked = !locked;
+        }
         if (Keyboard.current.fKey.wasPressedThisFrame)
             ToggleMode();
-
         if (isFreeCam)
             UpdateFreeCam();
         else
             UpdateOrbit();
+
     }
+
     void ToggleMode(){   
         // Toggle the camera mode
         isFreeCam = !isFreeCam;
@@ -90,7 +96,8 @@ public class CameraController : MonoBehaviour{
                         transform.up * upDownInput.y;
         transform.position += move * speed * Time.deltaTime;
     }
-    void UpdateOrbit(){   
+    void UpdateOrbit(){
+
 
         // If no target, do nothing
         if (orbitTarget == null) return;
@@ -100,18 +107,15 @@ public class CameraController : MonoBehaviour{
         pitch -= lookInput.y * orbitSensitivity;
         pitch = Mathf.Clamp(pitch, -80, 80);
         
-  
-        
-
-
         // calculate zoom based on up/down input (basically how close to the target))
         float zoom   = upDownInput.y * moveSpeed * Time.deltaTime;
         
     
         // apply zoom to base orbit distance
-        orbitDistance += zoom;
+        orbitDistance -= zoom;
         // take the max of orbit to prevent from going through the target
         orbitDistance  = Mathf.Max(5f, orbitDistance);
+        if(locked) return;
        
         ApplyOrbit();
     }
@@ -122,6 +126,7 @@ public class CameraController : MonoBehaviour{
         Quaternion rot = Quaternion.Euler(pitch, yaw, 0f);
         // set position based on the targets position 
         transform.position = orbitTarget.position - rot * Vector3.forward * orbitDistance;
+
         transform.rotation = rot;
     }
 }
