@@ -1,0 +1,104 @@
+using UnityEngine;
+using System.Collections.Generic;
+using System;
+using NUnit.Framework;
+
+public class RasterProjector
+{
+    // hard coded UTM zone and north for now :')
+    int zone = 20;
+    bool isNorth = true;
+
+    int targetResolution = 10;
+    
+    // 1. Get Bounding Box
+    // Determine new Array Length
+    // iterate over target array, filling in data points
+    public void convert(GeoTiffData geoTiffData)
+    {
+        Vector4 bbox = getBoundingBox(geoTiffData);
+        Debug.Log(bbox);
+
+        float xLength = bbox[1] - bbox[0];
+        float yLength = bbox[4] - bbox[3];
+
+
+        int arrLenX = Mathf.CeilToInt(xLength / targetResolution);
+        int arrLenY = Mathf.CeilToInt(yLength / targetResolution);
+
+        
+        int height = geoTiffData.Height;
+        int width = geoTiffData.Width;
+    
+        double[] pixelScale = geoTiffData.PixelScale;
+
+        int geoPosSize = height * width;
+        int geoDataSize = arrLenX * arrLenY;
+
+        List<Vector3> geoPosArr = new List<Vector3>(geoPosSize);
+
+        List<float> geoDataArr = new List<float>(geoDataSize);
+
+        List<float> rawData = geoTiffData.Data;
+        Debug.Assert(rawData.Count == geoPosSize, "The data and the height * width dont match for backscatter projection");
+
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                int idx = y * width + x;
+
+                float val = rawData[idx];
+
+                double xScaledPos = x * pixelScale[0];
+                double yScaledPos = y * pixelScale[1];
+
+                Vector2 utm = new Vector2((float)xScaledPos, (float)yScaledPos);
+
+                Vector2 geo = CoordinateProjector.UTMToGeo(utm, 20, true);
+
+                Vector3 geoDepth = new Vector3(geo.x,val, geo.y);
+                geoPosArr.Add(geoDepth);
+            }
+        }
+
+
+
+        for(int y = 0; y < arrLenY; y++){
+            for(int x = 0; x < arrLenX; x++){
+                int idx = y * width + x;
+                
+                int xScaledPos = x * targetResolution;
+                int yScaledPos = y * targetResolution;
+                // grab 4 nearest neighbors in geo space
+                // interpolate 
+                // output into target array
+            }
+        }
+    }
+
+
+// gets the bounding box in lat long
+// x min, x max, y min, y max
+    Vector4 getBoundingBox(GeoTiffData tiffData)
+    {
+        int width = tiffData.Width;
+        int height = tiffData.Height;
+
+        double[] pixelScale = tiffData.PixelScale;
+
+        Vector2 startingCoords = tiffData.startCoordsMeters;
+
+        float maxX = startingCoords.y + (float)(height * pixelScale[1]);
+        float maxY =  startingCoords.x + (float)(width * pixelScale[0]);
+        
+
+        Vector2 endCoords = new Vector2(maxX, maxY);
+
+        Vector2 startCoordsGeo = CoordinateProjector.UTMToGeo(startingCoords,zone,isNorth);
+        Vector2 EndCoordsGeo = CoordinateProjector.UTMToGeo(endCoords,zone,isNorth);
+
+        Vector4 bbox = new Vector4(startCoordsGeo.x, EndCoordsGeo.x, startCoordsGeo.y, EndCoordsGeo.y);
+
+        return bbox;
+        
+    }
+}
