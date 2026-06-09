@@ -60,15 +60,21 @@ public class RasterProjector
             }
         }
 
+        Vector2 startCoordsUTM = geoTiffData.startCoordsMeters;
 
+        Vector2 geoStart = CoordinateProjector.UTMToGeo(startCoordsUTM,20,true);
 
+        // backward pass
         for(int y = 0; y < arrLenY; y++){
             for(int x = 0; x < arrLenX; x++){
                 int idx = y * width + x;
                 
-                int xScaledPos = x * targetResolution;
-                int yScaledPos = y * targetResolution;
+                float xScaledPos = (x * targetResolution) + geoStart.x;
+                float yScaledPos = (y * targetResolution) + geoStart.y;
+
+                Vector2 geoPos = new Vector2(xScaledPos, yScaledPos);
                 // grab 4 nearest neighbors in geo space
+                
                 // interpolate 
                 // output into target array
             }
