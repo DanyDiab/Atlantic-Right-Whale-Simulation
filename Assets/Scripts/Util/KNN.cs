@@ -23,7 +23,7 @@ public class KNN
 
         int validPointCount = 0;
         for (int i = 0; i < depthsCount; i++) {
-            if (values[i] < seaLevel) {
+            if (values[i] < seaLevel || !skipSeaLevel) {
                 validPointCount++;
             }
         }
@@ -49,7 +49,7 @@ public class KNN
     }
 
 
-    public Tuple<float[], int>[] nearestNeighbors(GeoTiffData data, Vector2 targetPoint, int numNeighbors, bool skipSeaLevel, float seaLevel)
+    public Tuple<float[], int>[] nearestNeighbors(GeoTiffData data, Vector2 targetPoint, int numNeighbors, bool skipSeaLevel = false, float seaLevel = 0)
     {
         if(tree == null) generateTree(data,skipSeaLevel, seaLevel);
 

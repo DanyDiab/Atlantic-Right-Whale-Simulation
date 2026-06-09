@@ -6,21 +6,31 @@ using NUnit.Framework;
 public class RasterProjector
 {
     // hard coded UTM zone and north for now :')
-    int zone = 20;
-    bool isNorth = true;
+    int zone;
+    bool isNorth;
 
-    int targetResolution = 10;
+    float targetResolution;
+    int numNeighbors;
+    KNN kNN;
+
+    public RasterProjector()
+    {
+        targetResolution = .10f;
+        kNN = new KNN();
+        isNorth = true;
+        zone = 20;
+        numNeighbors = 4;
+    }
     
     // 1. Get Bounding Box
     // Determine new Array Length
     // iterate over target array, filling in data points
-    public void convert(GeoTiffData geoTiffData)
+    public GeoTiffData convert(GeoTiffData geoTiffData)
     {
         Vector4 bbox = getBoundingBox(geoTiffData);
-        Debug.Log(bbox);
 
         float xLength = bbox[1] - bbox[0];
-        float yLength = bbox[4] - bbox[3];
+        float yLength = bbox[2] - bbox[3];
 
 
         int arrLenX = Mathf.CeilToInt(xLength / targetResolution);
@@ -41,7 +51,8 @@ public class RasterProjector
 
         List<float> rawData = geoTiffData.Data;
         Debug.Assert(rawData.Count == geoPosSize, "The data and the height * width dont match for backscatter projection");
-
+// forward pass
+// convert points from UTM to lat long
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
                 int idx = y * width + x;
@@ -65,6 +76,7 @@ public class RasterProjector
         Vector2 geoStart = CoordinateProjector.UTMToGeo(startCoordsUTM,20,true);
 
         // backward pass
+        // populate geoArr with interpolate nearest neighbors to ensure neat positions are kept
         for(int y = 0; y < arrLenY; y++){
             for(int x = 0; x < arrLenX; x++){
                 int idx = y * width + x;
@@ -75,10 +87,25 @@ public class RasterProjector
                 Vector2 geoPos = new Vector2(xScaledPos, yScaledPos);
                 // grab 4 nearest neighbors in geo space
                 
-                // interpolate 
-                // output into target array
+                 Tuple<float[], int>[] nearest = kNN.nearestNeighbors(geoTiffData,geoPos,numNeighbors);
+
+                float intensitySum = 0.0f;
+                 foreach(Tuple<float[], int> val in nearest){
+                    float[] nieghborPos =  val.Item1;
+                    int originalIndex = val.Item2;
+
+                    float intensity = rawData[originalIndex];
+                    intensitySum += intensity;
+                }
+
+                float avg = intensitySum / numNeighbors;
+                
+                geoDataArr[idx] = avg;
             }
         }
+
+        geoTiffData.Data = geoDataArr;
+        return geoTiffData;
     }
 
 

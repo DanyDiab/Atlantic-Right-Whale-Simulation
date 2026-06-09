@@ -184,7 +184,7 @@ public class BathymetryReader : MonoBehaviour {
         
         GeoTiffData data = fileUtil.ReadGeoTiff(filePath, new float[]{processingSettings.MaxDepth, processingSettings.SeaLevel});
         depthDataRecord.tiffData = data;
-        depthDataRecord.tiffData.Data = patcher.patchChunk(data.Data, data.Width, data.Height);
+        depthDataRecord.tiffData.Data = patcher.patchChunk(data);
 
         return depthDataRecord;
     }

@@ -12,38 +12,22 @@ public class BackscatterReader : MonoBehaviour
     FileUtilities fileUtil;
 
     [SerializeField] ProcessingSettings processingSettings;
+    RasterProjector rasterProjector;
+
 
 
     void Start()
     {
+        rasterProjector = new RasterProjector();
         fileUtil = new FileUtilities();
         string area = processingSettings.AreaToFilePath();
         path = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
 
         List<GeoTiffData> data = readInAllTiffs(path);
         processBS(data);
+
     }
 
-// min x, max x, min y, max y
-    Vector4 getBoundingBox(GeoTiffData tiffData)
-    {
-        int width = tiffData.Width;
-        int height = tiffData.Height;
-
-        float[] pixelScale = Array.ConvertAll(tiffData.PixelScale, x => (float)x);
-
-        Vector2 startingCoords = tiffData.startCoordsMeters;
-
-        float maxX = startingCoords.y + (height * pixelScale[1]);
-        float maxY = startingCoords.x + (width * pixelScale[0]);
-        
-        Vector4 bbox = new Vector4(startingCoords.x, maxY, startingCoords.y, maxX);
-
-
-        Debug.Log(bbox);
-        return bbox;
-        
-    }
 
     void mapTexture(GeoTiffData tiffData)
     {
@@ -74,7 +58,9 @@ public class BackscatterReader : MonoBehaviour
             }
 
             geoTiff.Data = normalized;
-            getBoundingBox(geoTiff);
+
+            // convert from UTM to lat/long
+            rasterProjector.convert(geoTiff);
         }
     }
 
