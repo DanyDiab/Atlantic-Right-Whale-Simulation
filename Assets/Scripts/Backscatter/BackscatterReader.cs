@@ -7,7 +7,8 @@ using UnityEngine;
 using Newtonsoft.Json.Linq;
 public class BackscatterReader : MonoBehaviour
 {
-    string path;
+    string inPath;
+    string outPath;
     
     FileUtilities fileUtil;
 
@@ -20,24 +21,21 @@ public class BackscatterReader : MonoBehaviour
     {
         rasterProjector = new RasterProjector();
         fileUtil = new FileUtilities();
-        string area = processingSettings.AreaToFilePath();
-        path = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
 
-        List<GeoTiffData> data = readInAllTiffs(path);
+        string area = processingSettings.AreaToFilePath();
+        
+        inPath = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
+        outPath = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
+
+        List<GeoTiffData> data = readInAllTiffs(inPath);
         processBS(data);
 
+
+        foreach(GeoTiffData gt in data){
+            fileUtil.writeGeoTiffToBinary(gt, outPath);
+        }
     }
 
-
-    void mapTexture(GeoTiffData tiffData)
-    {
-        
-        
-        // List<float> intensities = tiffData.Data;
-
-        
-    }
-    
     void processBS(List<GeoTiffData> geoTiffs)
     {
         foreach(GeoTiffData geoTiff in geoTiffs)

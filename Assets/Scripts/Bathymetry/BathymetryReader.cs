@@ -1,13 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
-using BitMiracle.LibTiff.Classic;
 using System.IO;
 using System;
 using System.Linq;
-using Unity.VisualScripting;
-using Unity.ProjectAuditor.Editor;
-using ProjNet;
-using ProjNet.CoordinateSystems;
 
 public class BathymetryReader : MonoBehaviour {
 
@@ -53,23 +48,6 @@ public class BathymetryReader : MonoBehaviour {
     }
 
 
-    private void writeToBinary(string filePath, DepthDataRecord depthDataRecord) {
-        using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
-            using (BinaryWriter writer = new BinaryWriter(fs)) {
-                writer.Write(depthDataRecord.tiffData.Width);
-                writer.Write(depthDataRecord.tiffData.Height);
-                
-                writer.Write(depthDataRecord.ChunkPosition.x);
-                writer.Write(depthDataRecord.ChunkPosition.y);
-
-                writer.Write(depthDataRecord.tiffData.Data.Count);
-                
-                foreach (float depth in depthDataRecord.tiffData.Data) {
-                    writer.Write(depth);
-                }
-            }
-        }
-    }
 
     private void generateChunkOffsets(List<DepthDataRecord> records, List<string> fileNames){
 
@@ -148,7 +126,7 @@ public class BathymetryReader : MonoBehaviour {
             string fileName = fileNames[i];
 
             string path = Path.Combine(writingDir, fileName);
-            writeToBinary(path, record);
+            fileUtil.writeToBinary(record, path);
         }
 
     }

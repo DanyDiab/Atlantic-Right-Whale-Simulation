@@ -2,6 +2,8 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using NUnit.Framework;
+using Stopwatch = System.Diagnostics.Stopwatch;
+using System.Linq;
 
 public class RasterProjector
 {
@@ -27,6 +29,8 @@ public class RasterProjector
     // iterate over target array, filling in data points
     public GeoTiffData convert(GeoTiffData geoTiffData)
     {
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
         Vector4 bbox = getBoundingBox(geoTiffData);
 
         float xLength = bbox[1] - bbox[0];
@@ -47,7 +51,7 @@ public class RasterProjector
 
         List<Vector3> geoPosArr = new List<Vector3>(geoPosSize);
 
-        List<float> geoDataArr = new List<float>(geoDataSize);
+        float[] geoDataArr = new float[geoDataSize];
 
         List<float> rawData = geoTiffData.Data;
         Debug.Assert(rawData.Count == geoPosSize, "The data and the height * width dont match for backscatter projection");
@@ -79,7 +83,7 @@ public class RasterProjector
         // populate geoArr with interpolate nearest neighbors to ensure neat positions are kept
         for(int y = 0; y < arrLenY; y++){
             for(int x = 0; x < arrLenX; x++){
-                int idx = y * width + x;
+                int idx = y * arrLenX + x;
                 
                 float xScaledPos = (x * targetResolution) + geoStart.x;
                 float yScaledPos = (y * targetResolution) + geoStart.y;
@@ -104,7 +108,9 @@ public class RasterProjector
             }
         }
 
-        geoTiffData.Data = geoDataArr;
+        geoTiffData.Data = geoDataArr.ToList();
+        stopwatch.Stop();
+        Debug.LogFormat("backscatter processing took {0} ms", stopwatch.ElapsedMilliseconds);
         return geoTiffData;
     }
 

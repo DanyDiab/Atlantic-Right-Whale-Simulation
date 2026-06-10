@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BitMiracle.LibTiff.Classic;
 using UnityEngine;
+using System.IO;
 
 public class FileUtilities
 {
@@ -145,4 +146,51 @@ public class FileUtilities
         }
         return true;
     }
+
+
+    public void writeGeoTiffToBinary(GeoTiffData gtData, string filePath){
+        string directoryPath = Path.GetDirectoryName(filePath);
+    
+        if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath)) {
+            Directory.CreateDirectory(directoryPath);
+        }
+
+        using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
+            using (BinaryWriter writer = new BinaryWriter(fs)){
+                writer.Write(gtData.Width);
+                writer.Write(gtData.Height);
+
+                writer.Write(gtData.Data.Count);
+
+                foreach(float val in gtData.Data){
+                    writer.Write(val);
+                }
+            }
+        }
+    }
+
+    public void writeToBinary( DepthDataRecord depthDataRecord, string filePath) {
+        string directoryPath = Path.GetDirectoryName(filePath);
+    
+        if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath)) {
+            Directory.CreateDirectory(directoryPath);
+        }
+        
+        using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
+            using (BinaryWriter writer = new BinaryWriter(fs)) {
+                writer.Write(depthDataRecord.tiffData.Width);
+                writer.Write(depthDataRecord.tiffData.Height);
+                
+                writer.Write(depthDataRecord.ChunkPosition.x);
+                writer.Write(depthDataRecord.ChunkPosition.y);
+
+                writer.Write(depthDataRecord.tiffData.Data.Count);
+                
+                foreach (float depth in depthDataRecord.tiffData.Data) {
+                    writer.Write(depth);
+                }
+            }
+        }
+    }
+
 }
