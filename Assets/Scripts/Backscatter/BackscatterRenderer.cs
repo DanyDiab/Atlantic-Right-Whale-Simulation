@@ -19,27 +19,7 @@ public class BackscatterRenderer : MonoBehaviour
 
         List<GeoTiffData> data = readInTiffs(dir);
         
-        Dictionary<float, int> seen = new Dictionary<float, int>();
-        foreach(float val in data[0].Data){
-            if (seen.ContainsKey(val))
-            {
-                seen[val]++;
-            }
-            else
-            {
-                seen[val] = 1;
-            }
-        }
-
-
-
-        var keys = seen.Keys;
-
-        foreach(float key in keys)
-        {
-            Debug.LogFormat("Key : {0}\nCount : {1}",key, seen[key]);
-        }
-
+        
     }
 
 

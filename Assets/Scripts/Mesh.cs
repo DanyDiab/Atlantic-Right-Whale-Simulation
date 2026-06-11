@@ -153,10 +153,6 @@ namespace MeshGeneration
                 positions.Add(curr);
             }
 
-
-
-
-
             //generate indicies
             int numTrianglesPerCol = (height - 1) * 2;
             int numTriangles = numTrianglesPerCol * (width - 1);
@@ -187,9 +183,30 @@ namespace MeshGeneration
                 triangles.Add(v6);
 
             }
-
             mesh.SetVertices(positions);
             mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            Bounds bounds = mesh.bounds;
+            float minX = bounds.min.x;
+            float minZ = bounds.min.z;
+
+            float sizeX = bounds.size.x;
+            float sizeZ = bounds.size.z;
+
+            List<Vector2> uvs = new List<Vector2>(positions.Count);
+
+            foreach(Vector3 vertex in positions)
+            {
+                float u = (vertex.x - minX) / sizeX;
+                float v = (vertex.z - minZ) / sizeZ;
+                Vector2 uv = new Vector2(u,v);
+
+                uvs.Add(uv);
+            }
+            
+            mesh.uv = uvs.ToArray();
             return mesh;
         }
     }
