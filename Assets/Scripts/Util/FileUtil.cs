@@ -175,7 +175,7 @@ public class FileUtilities
         if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath)) {
             Directory.CreateDirectory(directoryPath);
         }
-        
+
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None)) {
             using (BinaryWriter writer = new BinaryWriter(fs)) {
                 writer.Write(depthDataRecord.tiffData.Width);
@@ -191,6 +191,100 @@ public class FileUtilities
                 }
             }
         }
+    }
+
+
+    public DepthDataRecord binToDepthRecord(string filePath)
+    {
+        DepthDataRecord record = new DepthDataRecord();
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return record;
+        }
+
+        if (!File.Exists(filePath))
+        {
+            return record;
+        }
+
+        using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            using (BinaryReader reader = new BinaryReader(fs))
+            {
+                record.tiffData = new GeoTiffData();
+                record.tiffData.Width = reader.ReadInt32();
+                record.tiffData.Height = reader.ReadInt32();
+
+                float chunkX = reader.ReadSingle();
+                float chunkY = reader.ReadSingle();
+                record.ChunkPosition = new Vector2(chunkX, chunkY);
+
+                int count = reader.ReadInt32();
+
+                if (count == 0)
+                {
+                    return record;
+                }
+
+                int byteCount = count * 4;
+
+                byte[] rawBytes = reader.ReadBytes(byteCount);
+                float[] depthsArray = new float[count];
+
+                Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
+                record.tiffData.Data = new List<float>(depthsArray);
+            }
+        }
+
+        return record;
+    }
+
+
+
+    public GeoTiffData binToTiffData(string filePath){
+        GeoTiffData gt = new GeoTiffData();
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return gt;
+        }
+
+        if (!File.Exists(filePath))
+        {
+            return gt;
+        }
+
+        using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            using (BinaryReader reader = new BinaryReader(fs))
+            {
+                gt.Width = reader.ReadInt32();
+                gt.Height = reader.ReadInt32();
+
+                int count = reader.ReadInt32();
+
+                if (count == 0)
+                {
+                    return gt;
+                }
+
+                int byteCount = count * 4;
+
+                Debug.LogFormat("Expecting {0} bytes", byteCount);
+
+                byte[] rawBytes = reader.ReadBytes(byteCount);
+                if (rawBytes.Length < byteCount) {
+                    return gt;
+                }
+                float[] rawData = new float[count];
+
+                Buffer.BlockCopy(rawBytes, 0, rawData, 0, byteCount);
+                gt.Data = new List<float>(rawData);
+            }
+        }
+
+        return gt;
     }
 
 }

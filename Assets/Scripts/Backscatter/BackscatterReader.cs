@@ -23,9 +23,9 @@ public class BackscatterReader : MonoBehaviour
         fileUtil = new FileUtilities();
 
         string area = processingSettings.AreaToFilePath();
-        
+        string outName = area + ".bytes";
         inPath = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
-        outPath = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
+        outPath = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area, outName);
 
         List<GeoTiffData> data = readInAllTiffs(inPath);
         processBS(data);
@@ -47,18 +47,32 @@ public class BackscatterReader : MonoBehaviour
 
             float range = max - min;
             List<float> normalized = new List<float>(rawData.Count);
+            Dictionary<float, int> seen = new Dictionary<float, int>();
 
             foreach(float dataPoint in rawData)
             {
             
                 float normal = (dataPoint - min) / range;
                 normalized.Add(normal);
+                if (seen.ContainsKey(normal))
+                {
+                    seen[normal]++;
+                }
+                else
+                {
+                    seen[normal] = 1;
+                }
             }
 
             geoTiff.Data = normalized;
+            var keys = seen.Keys;
 
+            foreach(float key in keys)
+            {
+                Debug.LogFormat("Key : {0}\nCount : {1}",key, seen[key]);
+            }
             // convert from UTM to lat/long
-            rasterProjector.convert(geoTiff);
+            // rasterProjector.convert(geoTiff);
         }
     }
 

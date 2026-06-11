@@ -7,6 +7,7 @@ using System;
 using UnityEngine.UIElements;
 
 using UnityMesh = UnityEngine.Mesh;
+using UnityEditor;
 
 namespace MeshGeneration
 {
@@ -27,10 +28,13 @@ namespace MeshGeneration
         [Tooltip("Press this to reload all the meshes from the binary files found in Assets/Data/Processed/(Area)")]
         [SerializeField] bool reloadMesh;
 
+        FileUtilities fileUtil;
+
         string byteFileDir;
 
         void Start()
         {
+            fileUtil = new FileUtilities();
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
             startMeshPipeline();
@@ -64,51 +68,7 @@ namespace MeshGeneration
         }
 
 
-        DepthDataRecord readInByteFile(string filePath)
-        {
-            DepthDataRecord record = new DepthDataRecord();
 
-            if (string.IsNullOrEmpty(filePath))
-            {
-                return record;
-            }
-
-            if (!File.Exists(filePath))
-            {
-                return record;
-            }
-
-            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                using (BinaryReader reader = new BinaryReader(fs))
-                {
-                    record.tiffData = new GeoTiffData();
-                    record.tiffData.Width = reader.ReadInt32();
-                    record.tiffData.Height = reader.ReadInt32();
-
-                    float chunkX = reader.ReadSingle();
-                    float chunkY = reader.ReadSingle();
-                    record.ChunkPosition = new Vector2(chunkX, chunkY);
-
-                    int count = reader.ReadInt32();
-
-                    if (count == 0)
-                    {
-                        return record;
-                    }
-
-                    int byteCount = count * 4;
-
-                    byte[] rawBytes = reader.ReadBytes(byteCount);
-                    float[] depthsArray = new float[count];
-
-                    Buffer.BlockCopy(rawBytes, 0, depthsArray, 0, byteCount);
-                    record.tiffData.Data = new List<float>(depthsArray);
-                }
-            }
-
-            return record;
-        }
 
         List<DepthDataRecord> traversePath(string path)
         {
@@ -129,7 +89,7 @@ namespace MeshGeneration
             foreach (string file in files)
             {
                 if (count >= numToRun && numToRun != -1) continue;
-                DepthDataRecord depthDataRecord = readInByteFile(file);
+                DepthDataRecord depthDataRecord = fileUtil.binToDepthRecord(file);
                 depthDataRecords.Add(depthDataRecord);
                 count++;
             }

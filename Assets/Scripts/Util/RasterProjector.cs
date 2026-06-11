@@ -91,7 +91,7 @@ public class RasterProjector
                 Vector2 geoPos = new Vector2(xScaledPos, yScaledPos);
                 // grab 4 nearest neighbors in geo space
                 
-                 Tuple<float[], int>[] nearest = kNN.nearestNeighbors(geoTiffData,geoPos,numNeighbors);
+                Tuple<float[], int>[] nearest = kNN.nearestNeighbors(geoTiffData,geoPos,numNeighbors);
 
                 float intensitySum = 0.0f;
                  foreach(Tuple<float[], int> val in nearest){
