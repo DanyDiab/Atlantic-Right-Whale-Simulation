@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,9 @@ public class BackscatterRenderer : MonoBehaviour
     readonly string inFile;
     [SerializeField] ProcessingSettings processingSettings;
     FileUtilities fileUtil;
-    GeoTiffData gt; 
+    GeoTiffData gt;
+
+    [SerializeField] GameObject meshParent;
     void Start()
     {
         string area = processingSettings.AreaToFilePath();
@@ -19,7 +22,34 @@ public class BackscatterRenderer : MonoBehaviour
 
         List<GeoTiffData> data = readInTiffs(dir);
         
+        assignTexture(data[0]);
+    }
+
+    void assignTexture(GeoTiffData data){
+        Renderer[] meshRenderer = GetComponentsInChildren<Renderer>(true);
+
+        List<float> vals = data.Data;
+
+        foreach(Renderer renderer in meshRenderer){
+            MaterialPropertyBlock block = new MaterialPropertyBlock();
+
+            Texture2D dataTexture = new Texture2D(vals.Count, 1, TextureFormat.RFloat, false);
+            dataTexture.filterMode = FilterMode.Point;
+            dataTexture.wrapMode = TextureWrapMode.Clamp;
+
+
+            for (int i = 0; i < vals.Count; i++) {
+                Color pixelColor = new Color(vals[i], 0.0f, 0.0f, 0.0f);
+                dataTexture.SetPixel(i, 0, pixelColor);
+            }
         
+            dataTexture.Apply();
+
+            block.SetFloat("TotalElements", data.Data.Count);
+            block.SetTexture("_Data", dataTexture);
+
+            renderer.SetPropertyBlock(block);
+        }
     }
 
 
