@@ -12,7 +12,6 @@ using UnityEditor;
 namespace MeshGeneration {
 
     public class Mesh : MonoBehaviour {
-        [SerializeField] int chunkSize = 10000;
 
         [Header("General")]
         [Tooltip("Parent of all the mesh chunks")]
@@ -128,6 +127,8 @@ namespace MeshGeneration {
 
             int height = depthData.tiffData.Height;
             int width = depthData.tiffData.Width;
+
+            float chunkSize = processingSettings.chunkSize;
             float distanceBetweenPointsX = chunkSize / (width - 1);
             float distanceBetweenPointsZ = chunkSize / (height - 1);
 

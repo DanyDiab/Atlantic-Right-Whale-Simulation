@@ -6,38 +6,23 @@ using System.Linq;
 
 public class BathymetryReader : MonoBehaviour {
 
-    string readingDir;
-    string writingDir;
     BathymetryPatcher patcher;
     FileUtilities fileUtil;
 
-    [SerializeField] bool reloadReader = false;
     [Header("Scriptable Objects")]
     [SerializeField] ProcessingSettings processingSettings;
 
-    [SerializeField] Chunks globalChunks;
-
     char[] fileDelims = {'/', '\\'};
 
-    void Update() {
-        if(!reloadReader) return;
-
-        startPipeline();
-
-        reloadReader = false;
-    }
-
-    public void Start() {
+    [ContextMenu("Bake Bathymetry Data")]
+    public void BakeData() {
         patcher = new BathymetryPatcher(processingSettings);
         fileUtil = new FileUtilities();
-        startPipeline();
-    }
 
-    void startPipeline() {
         string path = processingSettings.AreaToFilePath();
 
-        readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
-        writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
+        string readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
+        string writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
         
         if (!Directory.Exists(writingDir)) {
             Directory.CreateDirectory(writingDir);
@@ -57,18 +42,17 @@ public class BathymetryReader : MonoBehaviour {
             string filename = fileNames[i];
 
             Tuple<Vector2,Vector2> coords = parseCoords(filename);
-            Vector2 utm = coords.Item1;
             Vector2 geoCoords = coords.Item2;
 
-            if(utm.x < min.x) {
-                min.x = utm.x;
+            if(geoCoords.x < min.x) {
+                min.x = geoCoords.x;
             }
             
-            if(utm.y < min.y) {
-                min.y = utm.y;
+            if(geoCoords.y < min.y) {
+                min.y = geoCoords.y;
             }
 
-            coordsList.Add(utm);
+            coordsList.Add(geoCoords);
         }
 
         for(int i = 0; i < numRecords; i++) {
@@ -79,8 +63,7 @@ public class BathymetryReader : MonoBehaviour {
             Vector2 normalized = coord - min;
             chunk.MeshData.ChunkPosition = normalized;
 
-            Vector2 chunkCoord = coord;
-            chunk.MeshData.tiffData.startCoordsMeters = chunkCoord;
+            chunk.MeshData.tiffData.startCoordsMeters = coord;
 
             chunkList[i] = chunk;
         }
@@ -90,7 +73,7 @@ public class BathymetryReader : MonoBehaviour {
     private void readInAllTiffs(string readingDir, string writingDir) {
         
         if(!Directory.Exists(readingDir)) {
-            Debug.Log("The directory chosen is probably wrong: " + readingDir);
+            Debug.LogError("The directory chosen is probably wrong: " + readingDir);
             return;
         }
 
@@ -103,12 +86,7 @@ public class BathymetryReader : MonoBehaviour {
         int numFiles = files.Count();
 
         List<string> fileNames = new List<string>(numFiles);
-        
-        if(globalChunks.chunks == null) {
-            globalChunks.chunks = new List<ChunkData>(numFiles);
-        } else {
-            globalChunks.chunks.Clear();
-        }
+        List<ChunkData> localChunks = new List<ChunkData>(numFiles);
 
         int count = 0;
         foreach(string file in files) {
@@ -119,22 +97,23 @@ public class BathymetryReader : MonoBehaviour {
             string name = fileSplit[fileSplit.Length - 1];
 
             fileNames.Add(name);
-            globalChunks.chunks.Add(newChunk);
+            localChunks.Add(newChunk);
             count++;
             
             if(numToRun != -1 && count >= numToRun) break;
         }
 
-        generateChunkOffsets(globalChunks.chunks, fileNames);
+        generateChunkOffsets(localChunks, fileNames);
 
-        for(int i = 0; i < globalChunks.chunks.Count; i++) {
-            ChunkData chunk = globalChunks.chunks[i];
+        for(int i = 0; i < localChunks.Count; i++) {
+            ChunkData chunk = localChunks[i];
             string fileName = fileNames[i];
 
             string path = Path.Combine(writingDir, fileName);
             fileUtil.writeToBinary(chunk.MeshData, path);
         }
 
+        Debug.Log("Bathymetry baking done.");
     }
 
     private Tuple<Vector2, Vector2> parseCoords(string fileName) {

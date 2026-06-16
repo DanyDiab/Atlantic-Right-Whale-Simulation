@@ -7,72 +7,123 @@ using UnityEngine;
 using Newtonsoft.Json.Linq;
 
 public class BackscatterReader : MonoBehaviour {
-    string inPath;
-    string outPath;
-    
+
     FileUtilities fileUtil;
     RasterProjector rasterProjector;
 
     [Header("Scriptable Objects")]
     [SerializeField] ProcessingSettings processingSettings;
-    [SerializeField] Chunks globalChunks;
 
-    void Start() {
+    [ContextMenu("Bake Backscatter Data")]
+    public void BakeData() {
         rasterProjector = new RasterProjector();
         fileUtil = new FileUtilities();
 
         string area = processingSettings.AreaToFilePath();
-        string outName = area + ".bytes";
-        inPath = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
-        outPath = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area, outName);
+        string bsInPath = Path.Combine(Application.dataPath, "Data", "Backscatter", area);
+        string bsOutDir = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
+        string bathyDir = Path.Combine(Application.dataPath, "Data", "Processed", area);
 
-        readInAllTiffs(inPath);
-        processBS();
-
-        foreach(ChunkData chunk in globalChunks.chunks) {
-            if(chunk.BackscatterData != null) {
-                fileUtil.writeGeoTiffToBinary(chunk.BackscatterData, outPath);
-            }
+        if (!Directory.Exists(bsOutDir)) {
+            Directory.CreateDirectory(bsOutDir);
         }
+
+        List<GeoTiffData> masterTiffs = readInAllTiffs(bsInPath);
+
+        if (masterTiffs.Count == 0) return;
+
+        GeoTiffData masterBackscatter = processMasterBS(masterTiffs);
+
+        bakeChunksToDisk(masterBackscatter, bathyDir, bsOutDir);
+
+        Debug.Log("Backscatter baking complete. Data is ready for runtime loading.");
     }
 
-    void processBS() {
-        if(globalChunks.chunks == null) return;
+    void bakeChunksToDisk(GeoTiffData masterBackscatter, string bathyDir, string bsOutDir) {
+        if (!Directory.Exists(bathyDir)) {
+            Debug.LogError("Bathymetry directory missing: " + bathyDir);
+            return;
+        }
 
-        foreach(ChunkData chunk in globalChunks.chunks) {
-            GeoTiffData geoTiff = chunk.BackscatterData;
-            if(geoTiff == null || geoTiff.Data == null) continue;
+        string[] bathyFiles = Directory.GetFiles(bathyDir, "*.bytes", SearchOption.TopDirectoryOnly);
+        float chunkSize = processingSettings.chunkSize;
+        float geoPointDistance = 0.1f;
 
-            List<float> rawData = geoTiff.Data;
+        int numFiles = bathyFiles.Length;
+        int numToRun = processingSettings.numToRun;
 
-            float min = rawData.Min();
-            float max = rawData.Max();
+        for (int i = 0; i < numFiles; i++) {
+            string bathyFile = bathyFiles[i];
+            DepthDataRecord depthRecord = fileUtil.binToDepthRecord(bathyFile);
+            Vector2 chunkPos = depthRecord.tiffData.startCoordsMeters;
+            Vector2 backScatterPos = masterBackscatter.startCoordsMeters;
 
-            float range = max - min;
-            List<float> normalized = new List<float>(rawData.Count);
-            Dictionary<float, int> seen = new Dictionary<float, int>();
+            Vector2 geoSize = chunkPos - backScatterPos;
 
-            foreach(float dataPoint in rawData) {
+
+
+            int numPointsX = (int)(Mathf.Abs(geoSize.x) / geoPointDistance);
+            int numPointsY = (int)(Mathf.Abs(geoSize.y) / geoPointDistance);
+
+            int width = masterBackscatter.Width;
+            int height = masterBackscatter.Height;
+
+            int startIndex = (width * numPointsY) + numPointsX;
+
+            double[] pixelSize = depthRecord.tiffData.PixelScale;
             
-                float normal = (dataPoint - min) / range;
-                normalized.Add(normal);
+            int chunkPointSizeX = (int)(chunkSize / pixelSize[0]);
+            int chunkPointSizeY = (int)(chunkSize / pixelSize[1]);
+
+            List<float> chunkBS = new List<float>(chunkPointSizeX * chunkPointSizeY);
+            
+            for (int y = 0; y < chunkPointSizeY; y++) {
+                int rowStartIndex = startIndex + (y * width);
                 
-                if (seen.ContainsKey(normal)) {
-                    seen[normal]++;
-                } else {
-                    seen[normal] = 1;
+                if (rowStartIndex >= 0 && rowStartIndex + chunkPointSizeX <= masterBackscatter.Data.Count) {
+                    List<float> rowData = masterBackscatter.Data.GetRange(rowStartIndex, chunkPointSizeX);
+                    chunkBS.AddRange(rowData);
                 }
             }
 
-            geoTiff.Data = normalized;
-            Dictionary<float, int>.KeyCollection keys = seen.Keys;
+            GeoTiffData chunkTiff = new GeoTiffData();
+            chunkTiff.Data = chunkBS;
+            chunkTiff.Width = chunkPointSizeX;
+            chunkTiff.Height = chunkPointSizeY;
+            chunkTiff.startCoordsMeters = chunkPos;
+            chunkTiff.PixelScale = pixelSize;
 
-            foreach(float key in keys) {
-                Debug.LogFormat("Key : {0}\nCount : {1}", key, seen[key]);
-            }
-            // convert from UTM to lat/long
-            // rasterProjector.convert(geoTiff);
+            string fileName = Path.GetFileName(bathyFile);
+            string outPath = Path.Combine(bsOutDir, fileName);
+            fileUtil.writeGeoTiffToBinary(chunkTiff, outPath);
+
+            if(numToRun != -1 && i >= numToRun) break;
         }
+    }
+
+    GeoTiffData processMasterBS(List<GeoTiffData> masterTiffs) {
+        if (masterTiffs == null || masterTiffs.Count == 0) return null;
+
+        GeoTiffData masterTiff = masterTiffs[0];
+        List<float> rawData = masterTiff.Data;
+
+        float min = rawData.Min();
+        float max = rawData.Max();
+        float range = max - min;
+        
+        List<float> normalized = new List<float>(rawData.Count);
+
+        int rawDataCount = rawData.Count;
+        for (int i = 0; i < rawDataCount; i++) {
+            float dataPoint = rawData[i];
+            float normal = (dataPoint - min) / range;
+            normalized.Add(normal);
+        }
+
+        masterTiff.Data = normalized;
+        rasterProjector.convert(masterTiff);
+
+        return masterTiff;
     }
 
     float[] readInJSON(string filePath) {
@@ -97,10 +148,10 @@ public class BackscatterReader : MonoBehaviour {
         return new float[2] { min, max };
     }
     
-    void readInAllTiffs(string dir) {
-        if(!Directory.Exists(dir)) {
+    List<GeoTiffData> readInAllTiffs(string dir) {
+        if (!Directory.Exists(dir)) {
             Debug.LogError("The directory chosen is probably wrong: " + dir);
-            return;
+            return new List<GeoTiffData>();
         }
 
         string[] binSearchPattern = {"*.bytes"};
@@ -110,24 +161,18 @@ public class BackscatterReader : MonoBehaviour {
         IEnumerable<string> jsonFiles = jsonSearchPattern.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
 
         int binCount = binFiles.Count();
+        List<GeoTiffData> masterBackscatter = new List<GeoTiffData>(binCount);
 
-        if(globalChunks.chunks == null) {
-            globalChunks.chunks = new List<ChunkData>(binCount);
-        }
-
-        for(int i = 0; i < binCount; i++) {
+        for (int i = 0; i < binCount; i++) {
             string binFile = binFiles.ElementAt(i);
             string jsonFile = jsonFiles.ElementAt(i);
 
             float[] range = readInJSON(jsonFile);
             GeoTiffData tiffData = fileUtil.ReadGeoTiff(binFile, range);
             
-            if(i < globalChunks.chunks.Count) {
-                globalChunks.chunks[i].BackscatterData = tiffData;
-            } else {
-                ChunkData newChunk = new ChunkData(null, tiffData);
-                globalChunks.chunks.Add(newChunk);
-            }
+            masterBackscatter.Add(tiffData);
         }
+
+        return masterBackscatter;
     }
 }

@@ -184,6 +184,9 @@ public class FileUtilities
                 writer.Write(depthDataRecord.ChunkPosition.x);
                 writer.Write(depthDataRecord.ChunkPosition.y);
 
+                writer.Write(depthDataRecord.tiffData.PixelScale[0]);
+                writer.Write(depthDataRecord.tiffData.PixelScale[1]);
+
                 writer.Write(depthDataRecord.tiffData.Data.Count);
                 
                 foreach (float depth in depthDataRecord.tiffData.Data) {
@@ -220,6 +223,11 @@ public class FileUtilities
                 float chunkY = reader.ReadSingle();
                 record.ChunkPosition = new Vector2(chunkX, chunkY);
 
+                double pixelScaleX = reader.ReadDouble();
+                double pixelScaleY = reader.ReadDouble();
+
+                double[] pixelScale = new double[]{pixelScaleX, pixelScaleY};
+                record.tiffData.PixelScale = pixelScale;
                 int count = reader.ReadInt32();
 
                 if (count == 0)

@@ -12,20 +12,30 @@ public class BackscatterRenderer : MonoBehaviour {
 
     [Header("Scriptable Objects")]
     [SerializeField] ProcessingSettings processingSettings;
-    [SerializeField] Chunks globalChunks;
+    
+    [Header("Runtime Controls")]
+    [SerializeField] bool reloadTextures = false;
 
     void Start() {
+        fileUtil = new FileUtilities();
+        loadAndAssignTextures();
+    }
+
+    void Update() {
+        if(!reloadTextures) return;
+        
+        loadAndAssignTextures();
+        reloadTextures = false;
+    }
+
+    void loadAndAssignTextures() {
         string area = processingSettings.AreaToFilePath();
         string dir = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
 
-        fileUtil = new FileUtilities();
-
-        readInTiffs(dir);
-        assignTexture();
-    }
-
-    void assignTexture() {
-        if(globalChunks.chunks == null) return;
+        if(!Directory.Exists(dir)) {
+            Debug.LogError("The backscatter directory is missing: " + dir);
+            return;
+        }
 
         Renderer[] meshRenderers;
         if(meshParent != null) {
@@ -35,16 +45,28 @@ public class BackscatterRenderer : MonoBehaviour {
         }
 
         int numRenderers = meshRenderers.Length;
+        if(numRenderers == 0) {
+            Debug.LogWarning("No terrain renderers found to apply textures to.");
+            return;
+        }
 
-        for(int i = 0; i < globalChunks.chunks.Count; i++) {
+        string[] binSearchPattern = {"*.bytes"};
+        IEnumerable<string> binFilesEnum = binSearchPattern.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
+        
+        string[] bins = binFilesEnum.ToArray();
+        int numFiles = bins.Length;
+
+        for(int i = 0; i < bins.Count(); i++) {
             if(i >= numRenderers) break;
 
-            ChunkData chunk = globalChunks.chunks[i];
+            string binFile = bins[i];
             Renderer renderer = meshRenderers[i];
 
-            if(chunk.BackscatterData == null || chunk.BackscatterData.Data == null) continue;
+            GeoTiffData chunkData = fileUtil.binToTiffData(binFile);
 
-            List<float> vals = chunk.BackscatterData.Data;
+            if(chunkData == null || chunkData.Data == null) continue;
+
+            List<float> vals = chunkData.Data;
             MaterialPropertyBlock block = new MaterialPropertyBlock();
 
             Texture2D dataTexture = new Texture2D(vals.Count, 1, TextureFormat.RFloat, false);
@@ -62,37 +84,6 @@ public class BackscatterRenderer : MonoBehaviour {
             block.SetTexture("_Data", dataTexture);
 
             renderer.SetPropertyBlock(block);
-        }
-    }
-
-    void readInTiffs(string dir) {
-        if(!Directory.Exists(dir)) {
-            Debug.LogError("The directory chosen is probably wrong: " + dir);
-            return;
-        }
-
-        string[] binSearchPattern = {"*.bytes"};
-        IEnumerable<string> binFiles = binSearchPattern.SelectMany(pattern => Directory.EnumerateFiles(dir, pattern));
-        string[] bins = binFiles.ToArray();
-        int count = bins.Length;
-
-        if(globalChunks.chunks == null) {
-            globalChunks.chunks = new List<ChunkData>(count);
-        }
-
-        for(int i = 0; i < count; i++) {
-            string binFile = bins[i];
-
-            if(i < globalChunks.chunks.Count) {
-                if(globalChunks.chunks[i].BackscatterData == null) {
-                    GeoTiffData tiffData = fileUtil.binToTiffData(binFile);
-                    globalChunks.chunks[i].BackscatterData = tiffData;
-                }
-            } else {
-                GeoTiffData tiffData = fileUtil.binToTiffData(binFile);
-                ChunkData newChunk = new ChunkData(null, tiffData);
-                globalChunks.chunks.Add(newChunk);
-            }
         }
     }
 }

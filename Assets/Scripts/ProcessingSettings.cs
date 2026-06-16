@@ -34,6 +34,8 @@ public class ProcessingSettings : ScriptableObject
     public float noiseAmplitude;
 
     public float noiseFrequency;
+
+    public float chunkSize;
     
 
     public string AreaToFilePath(){

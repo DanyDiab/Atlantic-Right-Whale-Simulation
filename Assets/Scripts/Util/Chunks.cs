@@ -12,6 +12,8 @@ public class ChunkData{
     }
 }
 
+[CreateAssetMenu(fileName = "Chunks", menuName = "Scriptable Objects/Chunks")]
+
 public class Chunks : ScriptableObject
 {
     public List<ChunkData> chunks {get; set;}
