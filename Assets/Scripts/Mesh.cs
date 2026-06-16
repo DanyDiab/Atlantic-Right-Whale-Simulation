@@ -9,18 +9,14 @@ using UnityEngine.UIElements;
 using UnityMesh = UnityEngine.Mesh;
 using UnityEditor;
 
-namespace MeshGeneration
-{
+namespace MeshGeneration {
 
-    public class Mesh : MonoBehaviour
-    {
+    public class Mesh : MonoBehaviour {
         [SerializeField] int chunkSize = 10000;
 
         [Header("General")]
         [Tooltip("Parent of all the mesh chunks")]
-
         [SerializeField] GameObject parent;
-        [SerializeField] ProcessingSettings processingSettings;
 
         [SerializeField] Material meshMaterial;
 
@@ -29,118 +25,118 @@ namespace MeshGeneration
         [SerializeField] bool reloadMesh;
 
         FileUtilities fileUtil;
+        
+        [Header("Scriptable Objects")]
+        [SerializeField] ProcessingSettings processingSettings;
+        [SerializeField] Chunks globalChunks;
 
         string byteFileDir;
 
-        void Start()
-        {
+        void Start() {
             fileUtil = new FileUtilities();
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
             startMeshPipeline();
         }
 
-        void Update()
-        {
+        void Update() {
             if(!reloadMesh) return;
             
             clearOldChunks();
             startMeshPipeline();
             reloadMesh = false;
-
         }
 
-        void clearOldChunks()
-        {
-            foreach(Transform child in parent.GetComponentsInChildren<Transform>(true))
-            {
+        void clearOldChunks() {
+            foreach(Transform child in parent.GetComponentsInChildren<Transform>(true)) {
                 if(child == parent.transform) continue;
 
                 Destroy(child.gameObject);
             }
         }
 
+        void startMeshPipeline() {
+            bool needsLoading = globalChunks.chunks == null || globalChunks.chunks.Count != processingSettings.numToRun;
 
-        void startMeshPipeline(){
-            List<DepthDataRecord> depthDataRecords = traversePath(byteFileDir);
+            if(needsLoading) {
+                traversePath(byteFileDir);
+            }
 
-            generateAllMeshes(depthDataRecords);
+            if(globalChunks.chunks == null || globalChunks.chunks.Count == 0) {
+                Debug.LogWarning("Chunk Data is invalid or missing. Aborting mesh generation.");
+                return;
+            }
+
+            generateAllMeshes();
         }
 
-
-
-
-        List<DepthDataRecord> traversePath(string path)
-        {
-
+        void traversePath(string path) {
             int numToRun = processingSettings.numToRun;
-            if (string.IsNullOrEmpty(path))
-            {
-                return null;
-            }
-            if (!Directory.Exists(path))
-            {
-                return null;
-            }
+            
+            if (string.IsNullOrEmpty(path)) return;
+            if (!Directory.Exists(path)) return;
 
             string[] files = Directory.GetFiles(path, "*.bytes", SearchOption.TopDirectoryOnly);
-            List<DepthDataRecord> depthDataRecords = new List<DepthDataRecord>(files.Length);
+            
+            if(globalChunks.chunks == null) {
+                globalChunks.chunks = new List<ChunkData>(files.Length);
+            } else {
+                globalChunks.chunks.Clear();
+            }
+
             int count = 0;
-            foreach (string file in files)
-            {
+            foreach (string file in files) {
                 if (count >= numToRun && numToRun != -1) continue;
+                
                 DepthDataRecord depthDataRecord = fileUtil.binToDepthRecord(file);
-                depthDataRecords.Add(depthDataRecord);
+                ChunkData data = new ChunkData(depthDataRecord, null);
+                globalChunks.chunks.Add(data);
                 count++;
             }
-            return depthDataRecords;
         }
 
+        void generateAllMeshes() {
+            foreach (ChunkData record in globalChunks.chunks) {
 
-        void generateAllMeshes(List<DepthDataRecord> records)
-        {
-            foreach (DepthDataRecord record in records)
-            {
-                Vector2 chunkPos = record.ChunkPosition;
+                Vector2 chunkPos = record.MeshData.ChunkPosition;
                 int west = Mathf.FloorToInt(chunkPos.x);
                 int north = Mathf.FloorToInt(chunkPos.y);
 
                 UnityMesh chunkMesh = generateMeshData(record);
                 GameObject chunkObject = new GameObject("TerrainChunk_W" + west + "_N" + north);
                 chunkObject.transform.SetParent(parent.transform);
+                
                 MeshFilter meshFilter = chunkObject.AddComponent<MeshFilter>();
                 MeshRenderer meshRenderer = chunkObject.AddComponent<MeshRenderer>();
                 meshRenderer.material = meshMaterial;
 
                 meshFilter.mesh = chunkMesh;
 
-
                 chunkObject.transform.position = new Vector3(north, 0, -west);
             }
         }
 
-        UnityMesh generateMeshData(DepthDataRecord record){
+        UnityMesh generateMeshData(ChunkData record) {
             List<Vector3> positions = new List<Vector3>();
 
-            UnityMesh mesh = new UnityMesh{
+            UnityMesh mesh = new UnityMesh {
                 indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
             };
 
+            DepthDataRecord depthData = record.MeshData;
+            List<float> depths = depthData.tiffData.Data;
 
-            
-            List<float> depths = record.tiffData.Data;
-
-            int height = record.tiffData.Height;
-            int width = record.tiffData.Width;
+            int height = depthData.tiffData.Height;
+            int width = depthData.tiffData.Width;
             float distanceBetweenPointsX = chunkSize / (width - 1);
             float distanceBetweenPointsZ = chunkSize / (height - 1);
-
 
             int depthsCount = depths.Count;
 
             positions.Capacity = positions.Count + depths.Count;
             Vector3 curr = new Vector3();
-            for(int i = 0; i < depthsCount; i++){
+            
+            for(int i = 0; i < depthsCount; i++) {
                 float x = (i / height) * distanceBetweenPointsX;
                 float z = (i % width) * distanceBetweenPointsZ;
 
@@ -157,11 +153,11 @@ namespace MeshGeneration
             int numTrianglesPerCol = (height - 1) * 2;
             int numTriangles = numTrianglesPerCol * (width - 1);
 
-
             int numQuads = numTriangles / 2;
 
             List<int> triangles = new List<int>(numTriangles);
-            for(int i = 0; i < numQuads; i++){
+            
+            for(int i = 0; i < numQuads; i++) {
                 int x = i % (width - 1);
                 int y = i / (height - 1);
 
@@ -181,8 +177,8 @@ namespace MeshGeneration
                 triangles.Add(v4);
                 triangles.Add(v5);
                 triangles.Add(v6);
-
             }
+            
             mesh.SetVertices(positions);
             mesh.SetTriangles(triangles, 0);
             mesh.RecalculateNormals();
@@ -197,8 +193,7 @@ namespace MeshGeneration
 
             List<Vector2> uvs = new List<Vector2>(positions.Count);
 
-            foreach(Vector3 vertex in positions)
-            {
+            foreach(Vector3 vertex in positions) {
                 float u = (vertex.x - minX) / sizeX;
                 float v = (vertex.z - minZ) / sizeZ;
                 Vector2 uv = new Vector2(u,v);

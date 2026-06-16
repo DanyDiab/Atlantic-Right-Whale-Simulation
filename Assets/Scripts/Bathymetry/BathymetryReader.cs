@@ -8,17 +8,18 @@ public class BathymetryReader : MonoBehaviour {
 
     string readingDir;
     string writingDir;
-    [SerializeField] ProcessingSettings processingSettings;
     BathymetryPatcher patcher;
     FileUtilities fileUtil;
 
     [SerializeField] bool reloadReader = false;
+    [Header("Scriptable Objects")]
+    [SerializeField] ProcessingSettings processingSettings;
+
+    [SerializeField] Chunks globalChunks;
 
     char[] fileDelims = {'/', '\\'};
 
-
-    void Update()
-    {
+    void Update() {
         if(!reloadReader) return;
 
         startPipeline();
@@ -30,67 +31,65 @@ public class BathymetryReader : MonoBehaviour {
         patcher = new BathymetryPatcher(processingSettings);
         fileUtil = new FileUtilities();
         startPipeline();
-
     }
 
-
-    void startPipeline()
-    {
+    void startPipeline() {
         string path = processingSettings.AreaToFilePath();
 
         readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
         writingDir = Path.Combine(Application.dataPath, "Data", "Processed", path);
-        if (!Directory.Exists(writingDir))
-        {
+        
+        if (!Directory.Exists(writingDir)) {
             Directory.CreateDirectory(writingDir);
         }
+        
         readInAllTiffs(readingDir, writingDir);        
     }
 
-
-
-    private void generateChunkOffsets(List<DepthDataRecord> records, List<string> fileNames){
+    private void generateChunkOffsets(List<ChunkData> chunkList, List<string> fileNames) {
 
         Vector2 min = new Vector2(int.MaxValue, int.MaxValue);
 
-        int numRecords = records.Count;
+        int numRecords = chunkList.Count;
         List<Vector2> coordsList = new List<Vector2>(numRecords);
-        for(int i = 0; i < numRecords; i++){
+        
+        for(int i = 0; i < numRecords; i++) {
             string filename = fileNames[i];
 
             Tuple<Vector2,Vector2> coords = parseCoords(filename);
             Vector2 utm = coords.Item1;
             Vector2 geoCoords = coords.Item2;
 
-            if(utm.x < min.x){
+            if(utm.x < min.x) {
                 min.x = utm.x;
             }
             
-            if(utm.y < min.y){
+            if(utm.y < min.y) {
                 min.y = utm.y;
             }
 
             coordsList.Add(utm);
         }
 
-        for(int i = 0; i < numRecords; i++){
+        for(int i = 0; i < numRecords; i++) {
 
-            DepthDataRecord record = records[i];
+            ChunkData chunk = chunkList[i];
             Vector2 coord = coordsList[i];
 
             Vector2 normalized = coord - min;
-            record.ChunkPosition = normalized;
+            chunk.MeshData.ChunkPosition = normalized;
 
             Vector2 chunkCoord = coord;
-            record.tiffData.startCoordsMeters = chunkCoord;
+            chunk.MeshData.tiffData.startCoordsMeters = chunkCoord;
 
-            records[i] = record;
+            chunkList[i] = chunk;
         }
 
     }
-    private void readInAllTiffs(string readingDir, string writingDir){
+    
+    private void readInAllTiffs(string readingDir, string writingDir) {
         
-        if(!Directory.Exists(readingDir)){
+        if(!Directory.Exists(readingDir)) {
             Debug.Log("The directory chosen is probably wrong: " + readingDir);
             return;
         }
@@ -104,35 +103,41 @@ public class BathymetryReader : MonoBehaviour {
         int numFiles = files.Count();
 
         List<string> fileNames = new List<string>(numFiles);
-        List<DepthDataRecord> records = new List<DepthDataRecord>(numFiles);
+        
+        if(globalChunks.chunks == null) {
+            globalChunks.chunks = new List<ChunkData>(numFiles);
+        } else {
+            globalChunks.chunks.Clear();
+        }
 
         int count = 0;
-        foreach(string file in files){
+        foreach(string file in files) {
             DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
+            ChunkData newChunk = new ChunkData(depthDataRecord, null);
 
             string[] fileSplit = file.Split(fileDelims);
             string name = fileSplit[fileSplit.Length - 1];
 
             fileNames.Add(name);
-            records.Add(depthDataRecord);
+            globalChunks.chunks.Add(newChunk);
             count++;
+            
             if(numToRun != -1 && count >= numToRun) break;
         }
 
-        generateChunkOffsets(records, fileNames);
+        generateChunkOffsets(globalChunks.chunks, fileNames);
 
-        for(int i = 0; i < records.Count; i++){
-            DepthDataRecord record = records[i];
+        for(int i = 0; i < globalChunks.chunks.Count; i++) {
+            ChunkData chunk = globalChunks.chunks[i];
             string fileName = fileNames[i];
 
             string path = Path.Combine(writingDir, fileName);
-            fileUtil.writeToBinary(record, path);
+            fileUtil.writeToBinary(chunk.MeshData, path);
         }
 
     }
 
-
-    private Tuple<Vector2, Vector2> parseCoords(string fileName){
+    private Tuple<Vector2, Vector2> parseCoords(string fileName) {
         string nameWithExt = fileName.Split("_")[1];
         string extractedName = nameWithExt.Split(".")[0];
 
@@ -149,9 +154,9 @@ public class BathymetryReader : MonoBehaviour {
         Vector2 coords = new Vector2(lon, lat);
         Vector2 utm = CoordToUTM.Convert(coords);
         Tuple<Vector2, Vector2> data = new Tuple<Vector2, Vector2>(utm, coords);
+        
         return data;
     }
-
 
     private DepthDataRecord readTiff(string filePath) {
         DepthDataRecord depthDataRecord = new DepthDataRecord();
