@@ -55,7 +55,10 @@ public class BackscatterReader : MonoBehaviour {
         for (int i = 0; i < numFiles; i++) {
             string bathyFile = bathyFiles[i];
             DepthDataRecord depthRecord = fileUtil.binToDepthRecord(bathyFile);
+            // need to grab the non normalized position
             Vector2 chunkPos = depthRecord.tiffData.startCoordsMeters;
+            int chunkWidth = depthRecord.tiffData.Width;
+            int chunkHeight = depthRecord.tiffData.Height;
             Vector2 backScatterPos = masterBackscatter.startCoordsMeters;
 
             Vector2 geoSize = chunkPos - backScatterPos;
@@ -72,24 +75,23 @@ public class BackscatterReader : MonoBehaviour {
 
             double[] pixelSize = depthRecord.tiffData.PixelScale;
             
-            int chunkPointSizeX = (int)(chunkSize / pixelSize[0]);
-            int chunkPointSizeY = (int)(chunkSize / pixelSize[1]);
 
-            List<float> chunkBS = new List<float>(chunkPointSizeX * chunkPointSizeY);
+
+            List<float> chunkBS = new List<float>(chunkWidth * chunkHeight);
             
-            for (int y = 0; y < chunkPointSizeY; y++) {
+            for (int y = 0; y < chunkHeight; y++) {
                 int rowStartIndex = startIndex + (y * width);
                 
-                if (rowStartIndex >= 0 && rowStartIndex + chunkPointSizeX <= masterBackscatter.Data.Count) {
-                    List<float> rowData = masterBackscatter.Data.GetRange(rowStartIndex, chunkPointSizeX);
+                if (rowStartIndex >= 0 && rowStartIndex + chunkWidth <= masterBackscatter.Data.Count) {
+                    List<float> rowData = masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth);
                     chunkBS.AddRange(rowData);
                 }
             }
 
             GeoTiffData chunkTiff = new GeoTiffData();
             chunkTiff.Data = chunkBS;
-            chunkTiff.Width = chunkPointSizeX;
-            chunkTiff.Height = chunkPointSizeY;
+            chunkTiff.Width = chunkWidth;
+            chunkTiff.Height = chunkHeight;
             chunkTiff.startCoordsMeters = chunkPos;
             chunkTiff.PixelScale = pixelSize;
 

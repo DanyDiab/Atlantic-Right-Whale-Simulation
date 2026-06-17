@@ -107,7 +107,7 @@ public class RasterProjector
                 geoDataArr[idx] = avg;
             }
         }
-
+        geoTiffData.startCoordsMeters = geoStart;
         geoTiffData.Data = geoDataArr.ToList();
         stopwatch.Stop();
         Debug.LogFormat("backscatter processing took {0} ms", stopwatch.ElapsedMilliseconds);
