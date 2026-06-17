@@ -18,7 +18,7 @@ public class BathymetryReader : MonoBehaviour {
     public void BakeData() {
         patcher = new BathymetryPatcher(processingSettings);
         fileUtil = new FileUtilities();
-
+ 
         string path = processingSettings.AreaToFilePath();
 
         string readingDir = Path.Combine(Application.dataPath,"Data", "Bathymetry", path);
@@ -31,11 +31,11 @@ public class BathymetryReader : MonoBehaviour {
         readInAllTiffs(readingDir, writingDir);        
     }
 
-    private void generateChunkOffsets(List<ChunkData> chunkList, List<string> fileNames) {
+    private void generateChunkOffsets(List<DepthDataRecord> records, List<string> fileNames) {
 
         Vector2 min = new Vector2(int.MaxValue, int.MaxValue);
 
-        int numRecords = chunkList.Count;
+        int numRecords = records.Count;
         List<Vector2> coordsList = new List<Vector2>(numRecords);
         
         for(int i = 0; i < numRecords; i++) {
@@ -57,15 +57,15 @@ public class BathymetryReader : MonoBehaviour {
 
         for(int i = 0; i < numRecords; i++) {
 
-            ChunkData chunk = chunkList[i];
+            DepthDataRecord chunk = records[i];
             Vector2 coord = coordsList[i];
 
             Vector2 normalized = coord - min;
-            chunk.MeshData.ChunkPosition = normalized;
+            chunk.ChunkPosition = normalized;
 
-            chunk.MeshData.tiffData.startCoordsMeters = coord;
+            chunk.tiffData.startCoordsMeters = coord;
 
-            chunkList[i] = chunk;
+            records[i] = chunk;
         }
 
     }
@@ -86,31 +86,30 @@ public class BathymetryReader : MonoBehaviour {
         int numFiles = files.Count();
 
         List<string> fileNames = new List<string>(numFiles);
-        List<ChunkData> localChunks = new List<ChunkData>(numFiles);
+        List<DepthDataRecord> records = new List<DepthDataRecord>(numFiles);
 
         int count = 0;
         foreach(string file in files) {
             DepthDataRecord depthDataRecord = readTiff(Path.Combine(readingDir, file));
-            ChunkData newChunk = new ChunkData(depthDataRecord, null);
 
             string[] fileSplit = file.Split(fileDelims);
             string name = fileSplit[fileSplit.Length - 1];
 
             fileNames.Add(name);
-            localChunks.Add(newChunk);
+            records.Add(depthDataRecord);
             count++;
             
             if(numToRun != -1 && count >= numToRun) break;
         }
 
-        generateChunkOffsets(localChunks, fileNames);
+        generateChunkOffsets(records, fileNames);
 
-        for(int i = 0; i < localChunks.Count; i++) {
-            ChunkData chunk = localChunks[i];
+        for(int i = 0; i < records.Count; i++) {
+            DepthDataRecord chunk = records[i];
             string fileName = fileNames[i];
 
             string path = Path.Combine(writingDir, fileName);
-            fileUtil.writeToBinary(chunk.MeshData, path);
+            fileUtil.writeToBinary(chunk, path);
         }
 
         Debug.Log("Bathymetry baking done.");

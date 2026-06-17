@@ -53,6 +53,7 @@ public class BackscatterReader : MonoBehaviour {
         int numToRun = processingSettings.numToRun;
 
         for (int i = 0; i < numFiles; i++) {
+            if(numToRun != -1 && i >= numToRun) break;
             string bathyFile = bathyFiles[i];
             DepthDataRecord depthRecord = fileUtil.binToDepthRecord(bathyFile);
             // need to grab the non normalized position
@@ -77,9 +78,9 @@ public class BackscatterReader : MonoBehaviour {
             
 
 
-            List<float> chunkBS = new List<float>(chunkWidth * chunkHeight);
+            List<float> chunkBS = new List<float>(numPointsX * numPointsY);
             
-            for (int y = 0; y < chunkHeight; y++) {
+            for (int y = 0; y < numPointsY; y++) {
                 int rowStartIndex = startIndex + (y * width);
                 
                 if (rowStartIndex >= 0 && rowStartIndex + chunkWidth <= masterBackscatter.Data.Count) {
@@ -90,8 +91,8 @@ public class BackscatterReader : MonoBehaviour {
 
             GeoTiffData chunkTiff = new GeoTiffData();
             chunkTiff.Data = chunkBS;
-            chunkTiff.Width = chunkWidth;
-            chunkTiff.Height = chunkHeight;
+            chunkTiff.Width = numPointsX;
+            chunkTiff.Height = numPointsY;
             chunkTiff.startCoordsMeters = chunkPos;
             chunkTiff.PixelScale = pixelSize;
 
@@ -99,7 +100,7 @@ public class BackscatterReader : MonoBehaviour {
             string outPath = Path.Combine(bsOutDir, fileName);
             fileUtil.writeGeoTiffToBinary(chunkTiff, outPath);
 
-            if(numToRun != -1 && i >= numToRun) break;
+            
         }
     }
 
