@@ -30,58 +30,71 @@ public class BackscatterReader : MonoBehaviour {
 
         List<GeoTiffData> masterTiffs = readInAllTiffs(bsInPath);
 
-        if (masterTiffs.Count == 0) return;
+        if (masterTiffs.Count == 0) {
+            Debug.LogWarning("No master TIFFs found. Aborting bake.");
+            return;
+        }
 
         GeoTiffData masterBackscatter = processMasterBS(masterTiffs);
 
-        bakeChunksToDisk(masterBackscatter, bathyDir, bsOutDir);
+        if (masterBackscatter == null) {
+            Debug.LogError("Master backscatter processing failed. Aborting bake.");
+            return;
+        }
+
+        int numToRun = processingSettings.numToRun;
+
+        List<GeoTiffData> croppedChunks = cropTiffs(masterBackscatter, bathyDir, numToRun);
+
+        if (croppedChunks.Count == 0) {
+            Debug.LogWarning("No chunks were cropped. Aborting bake.");
+            return;
+        }
+
+        projectTiffs(croppedChunks);
+
+        writeTiffsToDisk(croppedChunks, bathyDir, bsOutDir);
 
         Debug.Log("Backscatter baking complete. Data is ready for runtime loading.");
     }
 
-    void bakeChunksToDisk(GeoTiffData masterBackscatter, string bathyDir, string bsOutDir) {
+    public List<GeoTiffData> cropTiffs(GeoTiffData masterBackscatter, string bathyDir, int numToRun) {
+        List<GeoTiffData> croppedChunks = new List<GeoTiffData>();
+
         if (!Directory.Exists(bathyDir)) {
             Debug.LogError("Bathymetry directory missing: " + bathyDir);
-            return;
+            return croppedChunks;
         }
 
         string[] bathyFiles = Directory.GetFiles(bathyDir, "*.bytes", SearchOption.TopDirectoryOnly);
-        float chunkSize = processingSettings.chunkSize;
-        float geoPointDistance = 0.1f;
-
         int numFiles = bathyFiles.Length;
-        int numToRun = processingSettings.numToRun;
+
+        float resolutionX = (float)masterBackscatter.PixelScale[0];
+        float resolutionY = Mathf.Abs((float)masterBackscatter.PixelScale[1]);
 
         for (int i = 0; i < numFiles; i++) {
-            if(numToRun != -1 && i >= numToRun) break;
+            if (numToRun != -1 && i >= numToRun) {
+                break;
+            }
+
             string bathyFile = bathyFiles[i];
             DepthDataRecord depthRecord = fileUtil.binToDepthRecord(bathyFile);
-            // need to grab the non normalized position
-            Vector2 chunkPos = depthRecord.tiffData.startCoordsMeters;
-            int chunkWidth = depthRecord.tiffData.Width;
-            int chunkHeight = depthRecord.tiffData.Height;
+            
+            int chunkWidth = 1001;
+            int chunkHeight = 1001;
+
+            Vector2 chunkPos = CoordinateProjector.GeoToUTM(depthRecord.tiffData.startCoordsMeters);
             Vector2 backScatterPos = masterBackscatter.startCoordsMeters;
 
-            Vector2 geoSize = chunkPos - backScatterPos;
-
-            Debug.LogFormat("Chunk: {0} | Chunk Pos: {1} | Master Pos: {2} | GeoSize (Offset in Degrees): {3}", bathyFile, chunkPos, backScatterPos, geoSize);
-
-            int offsetX = Mathf.RoundToInt((chunkPos.x - backScatterPos.x) / geoPointDistance);
-            int offsetY = Mathf.RoundToInt((backScatterPos.y - chunkPos.y) / geoPointDistance);
+            int offsetX = Mathf.RoundToInt((chunkPos.x - backScatterPos.x) / resolutionX);
+            int offsetY = Mathf.RoundToInt((backScatterPos.y - chunkPos.y) / resolutionY);
 
             int width = masterBackscatter.Width;
             int height = masterBackscatter.Height;
             
-            Debug.LogFormat("OffsetX: {0}, OffsetY: {1} | Master Width: {2}, Master Height: {3}", offsetX, offsetY, width, height);
-
-            int startIndex = (width * offsetY) + offsetX;
-
-            double[] pixelSize = depthRecord.tiffData.PixelScale;
-            
             float noDataValue = 1.0f;
-
             List<float> chunkBS = new List<float>(chunkWidth * chunkHeight);
-            
+
             for (int y = 0; y < chunkHeight; y++) {
                 int currentY = offsetY + y;
 
@@ -98,45 +111,53 @@ public class BackscatterReader : MonoBehaviour {
                     continue; 
                 }
 
-                if (startX >= 0 && endX <= width) {
-                    int rowStartIndex = (currentY * width) + startX;
-                    chunkBS.AddRange(masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth));
+                if (startX < 0 || endX > width) {
+                    for (int x = 0; x < chunkWidth; x++) {
+                        int currentX = startX + x;
+                        
+                        if (currentX < 0 || currentX >= width) {
+                            chunkBS.Add(noDataValue);
+                            continue;
+                        }
+
+                        int index = (currentY * width) + currentX;
+                        chunkBS.Add(masterBackscatter.Data[index]);
+                    }
                     continue;
                 }
 
-                for (int x = 0; x < chunkWidth; x++) {
-                    int currentX = startX + x;
-                
-                    if (currentX >= 0 && currentX < width) {
-                        int index = (currentY * width) + currentX;
-                        chunkBS.Add(masterBackscatter.Data[index]);
-                        continue;
-                    }
-
-                    chunkBS.Add(noDataValue);
-                    }
-                }
+                int rowStartIndex = (currentY * width) + startX;
+                chunkBS.AddRange(masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth));
+            }
 
             GeoTiffData chunkTiff = new GeoTiffData();
             chunkTiff.Data = chunkBS;
             chunkTiff.Width = chunkWidth;
             chunkTiff.Height = chunkHeight;
             chunkTiff.startCoordsMeters = chunkPos;
-            chunkTiff.PixelScale = pixelSize;
-
-            string fileName = Path.GetFileName(bathyFile);
-            string outPath = Path.Combine(bsOutDir, fileName);
-            fileUtil.writeGeoTiffToBinary(chunkTiff, outPath);
-
             
+            chunkTiff.PixelScale = new double[] { resolutionX, resolutionY, 0.0 };
+
+            croppedChunks.Add(chunkTiff);
+        }
+
+        return croppedChunks;
+    }
+
+    public void projectTiffs(List<GeoTiffData> tiffChunks) {
+        if (tiffChunks == null) {
+            return;
+        }
+
+        int chunkCount = tiffChunks.Count;
+        for (int i = 0; i < chunkCount; i++) {
+            rasterProjector.GEOtoUTM(tiffChunks[i]);
         }
     }
 
-    GeoTiffData processMasterBS(List<GeoTiffData> masterTiffs) {
-        if (masterTiffs == null || masterTiffs.Count == 0) return null;
 
-        GeoTiffData masterTiff = masterTiffs[0];
-        List<float> rawData = masterTiff.Data;
+    void normalizeTiff(GeoTiffData tiff){
+        List<float> rawData = tiff.Data;
 
         float min = rawData.Min();
         float max = rawData.Max();
@@ -154,9 +175,13 @@ public class BackscatterReader : MonoBehaviour {
 
         Debug.LogFormat("There are {0} max points, out of {1} total", numberNoData, rawDataCount);
 
-        masterTiff.Data = normalized;
-        rasterProjector.convert(masterTiff);
+        tiff.Data = normalized;
+    }
+    GeoTiffData processMasterBS(List<GeoTiffData> masterTiffs) {
+        if (masterTiffs == null || masterTiffs.Count == 0) return null;
 
+        GeoTiffData masterTiff = masterTiffs[0];
+        normalizeTiff(masterTiff);
         return masterTiff;
     }
 
@@ -208,5 +233,34 @@ public class BackscatterReader : MonoBehaviour {
         }
 
         return masterBackscatter;
+    }
+
+    public void writeTiffsToDisk(List<GeoTiffData> tiffChunks, string bathyDir, string bsOutDir) {
+        if (tiffChunks == null) {
+            return;
+        }
+
+        if (tiffChunks.Count == 0) {
+            return;
+        }
+
+        if (!Directory.Exists(bsOutDir)) {
+            Directory.CreateDirectory(bsOutDir);
+        }
+
+        string[] bathyFiles = Directory.GetFiles(bathyDir, "*.bytes", SearchOption.TopDirectoryOnly);
+        int chunkCount = tiffChunks.Count;
+
+        for (int i = 0; i < chunkCount; i++) {
+            if (i >= bathyFiles.Length) {
+                Debug.LogError("Mismatch between number of tiff chunks and available bathymetry files.");
+                break;
+            }
+
+            string fileName = Path.GetFileName(bathyFiles[i]);
+            string outPath = Path.Combine(bsOutDir, fileName);
+
+            fileUtil.writeGeoTiffToBinary(tiffChunks[i], outPath);
+        }
     }
 }

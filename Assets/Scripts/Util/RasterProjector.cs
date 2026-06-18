@@ -31,7 +31,7 @@ public class RasterProjector
     // 1. Get Bounding Box
     // Determine new Array Length
     // iterate over target array, filling in data points
-    public GeoTiffData convert(GeoTiffData geoTiffData)
+    public GeoTiffData UTMtoGEO(GeoTiffData geoTiffData)
     {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -62,8 +62,7 @@ public class RasterProjector
 
         List<float> rawData = geoTiffData.Data;
         Debug.Assert(rawData.Count == geoPosSize, "The data and the height * width dont match for backscatter projection");
-// forward pass
-// convert points from UTM to lat long
+        // forward pass
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
                 int idx = y * width + x;
@@ -87,7 +86,6 @@ public class RasterProjector
         Vector2 geoStart = CoordinateProjector.UTMToGeo(startCoordsUTM,20,true);
 
         // backward pass
-        // populate geoArr with interpolate nearest neighbors to ensure neat positions are kept
         for(int y = 0; y < arrLenY; y++){
             for(int x = 0; x < arrLenX; x++){
                 int idx = y * arrLenX + x;
@@ -121,6 +119,105 @@ public class RasterProjector
         geoTiffData.PixelScale = new double[] { targetResolution, targetResolution, 0.0 };
         stopwatch.Stop();
         Debug.LogFormat("backscatter processing took {0} ms", stopwatch.ElapsedMilliseconds);
+        return geoTiffData;
+    }
+
+
+    public GeoTiffData GEOtoUTM(GeoTiffData geoTiffData) {
+        if (geoTiffData == null) {
+            return null;
+        }
+
+        Stopwatch stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        Vector4 bbox = getBoundingBox(geoTiffData);
+
+        Vector2 minGeo = new Vector2(bbox[0], bbox[2]);
+        Vector2 maxGeo = new Vector2(bbox[1], bbox[3]);
+        
+        Vector2 minUTM = CoordinateProjector.GeoToUTM(minGeo);
+        Vector2 maxUTM = CoordinateProjector.GeoToUTM(maxGeo);
+
+        float xLength = maxUTM.x - minUTM.x;
+        float yLength = maxUTM.y - minUTM.y;
+
+        int height = geoTiffData.Height;
+        int width = geoTiffData.Width;
+
+        float targetResolutionX = xLength / width;
+        float targetResolutionY = yLength / height;
+        
+        float calculatedTargetResolution = Mathf.Min(targetResolutionX, targetResolutionY);
+
+        int arrLenX = Mathf.CeilToInt(xLength / calculatedTargetResolution);
+        int arrLenY = Mathf.CeilToInt(yLength / calculatedTargetResolution);
+
+        int utmPosSize = height * width;
+        int utmDataSize = arrLenX * arrLenY;
+
+        List<Vector3> utmPosArr = new List<Vector3>(utmPosSize);
+        float[] utmDataArr = new float[utmDataSize];
+
+        List<float> rawData = geoTiffData.Data;
+        Debug.Assert(rawData.Count == utmPosSize, "The data and the height * width dont match for backscatter projection");
+
+        // forward pass
+        double[] pixelScale = geoTiffData.PixelScale;
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int idx = (y * width) + x;
+
+                float val = rawData[idx];
+
+                double xScaledPos = x * pixelScale[0];
+                double yScaledPos = y * pixelScale[1];
+
+                Vector2 geo = new Vector2((float)xScaledPos, (float)yScaledPos);
+                Vector2 utm = CoordinateProjector.GeoToUTM(geo);
+
+                Vector3 utmDepth = new Vector3(utm.x, val, utm.y);
+                utmPosArr.Add(utmDepth);
+            }
+        }
+
+        Vector2 startCoordsGeo = geoTiffData.startCoordsMeters;
+        Vector2 utmStart = CoordinateProjector.GeoToUTM(startCoordsGeo);
+
+        // backward pass
+        for (int y = 0; y < arrLenY; y++) {
+            for (int x = 0; x < arrLenX; x++) {
+                int idx = (y * arrLenX) + x;
+                
+                float xScaledPos = (x * targetResolution) + utmStart.x;
+                float yScaledPos = (y * targetResolution) + utmStart.y;
+
+                Vector2 utmPos = new Vector2(xScaledPos, yScaledPos);
+                
+                Tuple<float[], int>[] nearest = kNN.nearestNeighbors(geoTiffData, utmPos, numNeighbors);
+
+                float intensitySum = 0.0f;
+                foreach (Tuple<float[], int> val in nearest) {
+                    int originalIndex = val.Item2;
+                    float intensity = rawData[originalIndex];
+                    intensitySum += intensity;
+                }
+
+                float avg = intensitySum / numNeighbors;
+                
+                utmDataArr[idx] = avg;
+            }
+        }
+
+        geoTiffData.startCoordsMeters = utmStart;
+        geoTiffData.Data = utmDataArr.ToList();
+        geoTiffData.Width = arrLenX;
+        geoTiffData.Height = arrLenY;
+        geoTiffData.PixelScale = new double[] { targetResolution, targetResolution, 0.0 };
+        
+        stopwatch.Stop();
+        Debug.LogFormat("forward projection took {0} ms", stopwatch.ElapsedMilliseconds);
+        
         return geoTiffData;
     }
 
