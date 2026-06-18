@@ -64,35 +64,63 @@ public class BackscatterReader : MonoBehaviour {
 
             Vector2 geoSize = chunkPos - backScatterPos;
 
+            Debug.LogFormat("Chunk: {0} | Chunk Pos: {1} | Master Pos: {2} | GeoSize (Offset in Degrees): {3}", bathyFile, chunkPos, backScatterPos, geoSize);
 
-
-            int numPointsX = (int)(Mathf.Abs(geoSize.x) / geoPointDistance);
-            int numPointsY = (int)(Mathf.Abs(geoSize.y) / geoPointDistance);
+            int offsetX = Mathf.RoundToInt((chunkPos.x - backScatterPos.x) / geoPointDistance);
+            int offsetY = Mathf.RoundToInt((backScatterPos.y - chunkPos.y) / geoPointDistance);
 
             int width = masterBackscatter.Width;
             int height = masterBackscatter.Height;
+            
+            Debug.LogFormat("OffsetX: {0}, OffsetY: {1} | Master Width: {2}, Master Height: {3}", offsetX, offsetY, width, height);
 
-            int startIndex = (width * numPointsY) + numPointsX;
+            int startIndex = (width * offsetY) + offsetX;
 
             double[] pixelSize = depthRecord.tiffData.PixelScale;
             
+            float noDataValue = 1.0f;
 
-
-            List<float> chunkBS = new List<float>(numPointsX * numPointsY);
+            List<float> chunkBS = new List<float>(chunkWidth * chunkHeight);
             
-            for (int y = 0; y < numPointsY; y++) {
-                int rowStartIndex = startIndex + (y * width);
-                
-                if (rowStartIndex >= 0 && rowStartIndex + chunkWidth <= masterBackscatter.Data.Count) {
-                    List<float> rowData = masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth);
-                    chunkBS.AddRange(rowData);
+            for (int y = 0; y < chunkHeight; y++) {
+                int currentY = offsetY + y;
+
+                if (currentY < 0 || currentY >= height) {
+                    chunkBS.AddRange(Enumerable.Repeat(noDataValue, chunkWidth));
+                    continue; 
                 }
-            }
+
+                int startX = offsetX;
+                int endX = offsetX + chunkWidth;
+
+                if (endX <= 0 || startX >= width) {
+                    chunkBS.AddRange(Enumerable.Repeat(noDataValue, chunkWidth));
+                    continue; 
+                }
+
+                if (startX >= 0 && endX <= width) {
+                    int rowStartIndex = (currentY * width) + startX;
+                    chunkBS.AddRange(masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth));
+                    continue;
+                }
+
+                for (int x = 0; x < chunkWidth; x++) {
+                    int currentX = startX + x;
+                
+                    if (currentX >= 0 && currentX < width) {
+                        int index = (currentY * width) + currentX;
+                        chunkBS.Add(masterBackscatter.Data[index]);
+                        continue;
+                    }
+
+                    chunkBS.Add(noDataValue);
+                    }
+                }
 
             GeoTiffData chunkTiff = new GeoTiffData();
             chunkTiff.Data = chunkBS;
-            chunkTiff.Width = numPointsX;
-            chunkTiff.Height = numPointsY;
+            chunkTiff.Width = chunkWidth;
+            chunkTiff.Height = chunkHeight;
             chunkTiff.startCoordsMeters = chunkPos;
             chunkTiff.PixelScale = pixelSize;
 
@@ -115,13 +143,16 @@ public class BackscatterReader : MonoBehaviour {
         float range = max - min;
         
         List<float> normalized = new List<float>(rawData.Count);
-
+        int numberNoData = 0;
         int rawDataCount = rawData.Count;
         for (int i = 0; i < rawDataCount; i++) {
             float dataPoint = rawData[i];
             float normal = (dataPoint - min) / range;
             normalized.Add(normal);
+            if(normal == max) numberNoData++;
         }
+
+        Debug.LogFormat("There are {0} max points, out of {1} total", numberNoData, rawDataCount);
 
         masterTiff.Data = normalized;
         rasterProjector.convert(masterTiff);

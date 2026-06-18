@@ -64,18 +64,31 @@ public class BackscatterRenderer : MonoBehaviour {
 
             GeoTiffData chunkData = fileUtil.binToTiffData(binFile);
 
+            if(chunkData.Data.Count(x => Mathf.Approximately(x, 1.0f)) == chunkData.Data.Count())
+            {
+                Debug.LogWarning("Renderer: this entire grabbed chunk is invalid!");
+            }
             if(chunkData == null || chunkData.Data == null) continue;
 
             List<float> vals = chunkData.Data;
             MaterialPropertyBlock block = new MaterialPropertyBlock();
 
-            Texture2D dataTexture = new Texture2D(vals.Count, 1, TextureFormat.RFloat, false);
+            int texWidth = chunkData.Width;
+            int texHeight = chunkData.Height;
+
+            Texture2D dataTexture = new Texture2D(texWidth, texHeight, TextureFormat.RFloat, false);
             dataTexture.filterMode = FilterMode.Point;
             dataTexture.wrapMode = TextureWrapMode.Clamp;
 
-            for (int j = 0; j < vals.Count; j++) {
-                Color pixelColor = new Color(vals[j], 0.0f, 0.0f, 0.0f);
-                dataTexture.SetPixel(j, 0, pixelColor);
+            for (int y = 0; y < texHeight; y++) {
+                for (int x = 0; x < texWidth; x++) {
+                    int index = (y * texWidth) + x;
+
+                    float val = index < vals.Count ? vals[index] : 0.0f;
+
+                    Color pixelColor = new Color(val, 0.0f, 0.0f, 0.0f);
+                    dataTexture.SetPixel(x, y, pixelColor);
+                }
             }
 
             dataTexture.Apply();

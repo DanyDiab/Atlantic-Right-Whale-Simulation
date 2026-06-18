@@ -4,6 +4,7 @@ using System;
 using NUnit.Framework;
 using Stopwatch = System.Diagnostics.Stopwatch;
 using System.Linq;
+using Unity.VisualScripting;
 
 public class RasterProjector
 {
@@ -14,6 +15,8 @@ public class RasterProjector
     float targetResolution;
     int numNeighbors;
     KNN kNN;
+    // how many points along X and Y in each chunk?
+    int pointsPerChunkDim;
 
     public RasterProjector()
     {
@@ -22,6 +25,7 @@ public class RasterProjector
         isNorth = true;
         zone = 20;
         numNeighbors = 4;
+        pointsPerChunkDim = 1001;
     }
     
     // 1. Get Bounding Box
@@ -34,13 +38,16 @@ public class RasterProjector
         Vector4 bbox = getBoundingBox(geoTiffData);
 
         float xLength = bbox[1] - bbox[0];
-        float yLength = bbox[2] - bbox[3];
-
-
-        int arrLenX = Mathf.CeilToInt(xLength / targetResolution);
-        int arrLenY = Mathf.CeilToInt(yLength / targetResolution);
+        float yLength = bbox[3] - bbox[2];
 
         
+
+        int numChunksX = Mathf.CeilToInt(xLength / targetResolution);
+        int numChunksY = Mathf.CeilToInt(yLength / targetResolution);
+
+        int arrLenX = numChunksX * pointsPerChunkDim;
+        int arrLenY = numChunksY * pointsPerChunkDim;
+
         int height = geoTiffData.Height;
         int width = geoTiffData.Width;
     
@@ -109,6 +116,9 @@ public class RasterProjector
         }
         geoTiffData.startCoordsMeters = geoStart;
         geoTiffData.Data = geoDataArr.ToList();
+        geoTiffData.Width = arrLenX;
+        geoTiffData.Height = arrLenY;
+        geoTiffData.PixelScale = new double[] { targetResolution, targetResolution, 0.0 };
         stopwatch.Stop();
         Debug.LogFormat("backscatter processing took {0} ms", stopwatch.ElapsedMilliseconds);
         return geoTiffData;
@@ -126,8 +136,8 @@ public class RasterProjector
 
         Vector2 startingCoords = tiffData.startCoordsMeters;
 
-        float maxX = startingCoords.y + (float)(height * pixelScale[1]);
-        float maxY =  startingCoords.x + (float)(width * pixelScale[0]);
+        float maxX = startingCoords.x + (float)(height * pixelScale[1]);
+        float maxY =  startingCoords.y + (float)(width * pixelScale[0]);
         
 
         Vector2 endCoords = new Vector2(maxX, maxY);

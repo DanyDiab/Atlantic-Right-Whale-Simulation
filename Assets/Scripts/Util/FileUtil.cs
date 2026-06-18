@@ -71,6 +71,7 @@ public class FileUtilities
 
         float min = range[0];
         float max = range[1];
+        
 
         for (int y = 0; y < height; y += tileHeight) {
             for (int x = 0; x < width; x += tileWidth) {
