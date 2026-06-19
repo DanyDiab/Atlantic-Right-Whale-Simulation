@@ -6,6 +6,10 @@ using UnityEngine;
 public class KNN
 {
     KDTree<float, int> tree;
+
+    public void ResetTree() {
+        tree = null;
+    }
     private void generateTree(GeoTiffData geoTiffData, bool skipSeaLevel = false, float seaLevel = 0)
     {
 
@@ -49,7 +53,7 @@ public class KNN
     }
 
 
-    public Tuple<float[], int>[] nearestNeighbors(GeoTiffData data, Vector2 targetPoint, int numNeighbors, bool skipSeaLevel = false, float seaLevel = 0)
+    public Tuple<float[], int>[] nearestNeighbors(GeoTiffData data, Vector2 targetPoint, int numNeighbors, bool skipSeaLevel, float seaLevel)
     {
         if(tree == null) generateTree(data,skipSeaLevel, seaLevel);
 

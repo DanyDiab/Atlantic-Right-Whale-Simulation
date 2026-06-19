@@ -89,8 +89,8 @@ namespace MeshGeneration {
 
                 Vector2 chunkPos = record.ChunkPosition;
 
-                float west = Mathf.FloorToInt(chunkPos.x) * chunkSize;
-                float north = Mathf.FloorToInt(chunkPos.y) * chunkSize;
+                float west = Mathf.RoundToInt(chunkPos.x) * chunkSize;
+                float north = Mathf.RoundToInt(chunkPos.y) * chunkSize;
 
                 UnityMesh chunkMesh = generateMeshData(record);
                 GameObject chunkObject = new GameObject("TerrainChunk_W" + west + "_N" + north);
@@ -106,28 +106,29 @@ namespace MeshGeneration {
             }
         }
 
-        UnityMesh generateMeshData(DepthDataRecord record) {
+        UnityMesh generateMeshData(DepthDataRecord record){
+            float chunkSize = processingSettings.chunkSize;
             List<Vector3> positions = new List<Vector3>();
 
-            UnityMesh mesh = new UnityMesh {
+            UnityMesh mesh = new UnityMesh{
                 indexFormat = UnityEngine.Rendering.IndexFormat.UInt32
             };
 
+
+            
             List<float> depths = record.tiffData.Data;
 
             int height = record.tiffData.Height;
             int width = record.tiffData.Width;
-
-            float chunkSize = processingSettings.chunkSize;
             float distanceBetweenPointsX = chunkSize / (width - 1);
             float distanceBetweenPointsZ = chunkSize / (height - 1);
+
 
             int depthsCount = depths.Count;
 
             positions.Capacity = positions.Count + depths.Count;
             Vector3 curr = new Vector3();
-            
-            for(int i = 0; i < depthsCount; i++) {
+            for(int i = 0; i < depthsCount; i++){
                 float x = (i / height) * distanceBetweenPointsX;
                 float z = (i % width) * distanceBetweenPointsZ;
 
@@ -144,11 +145,11 @@ namespace MeshGeneration {
             int numTrianglesPerCol = (height - 1) * 2;
             int numTriangles = numTrianglesPerCol * (width - 1);
 
+
             int numQuads = numTriangles / 2;
 
             List<int> triangles = new List<int>(numTriangles);
-            
-            for(int i = 0; i < numQuads; i++) {
+            for(int i = 0; i < numQuads; i++){
                 int x = i % (width - 1);
                 int y = i / (height - 1);
 
@@ -168,11 +169,11 @@ namespace MeshGeneration {
                 triangles.Add(v4);
                 triangles.Add(v5);
                 triangles.Add(v6);
+
             }
-            
             mesh.SetVertices(positions);
             mesh.SetTriangles(triangles, 0);
-
+            mesh.RecalculateNormals();
             mesh.RecalculateBounds();
 
             Bounds bounds = mesh.bounds;
@@ -184,7 +185,8 @@ namespace MeshGeneration {
 
             List<Vector2> uvs = new List<Vector2>(positions.Count);
 
-            foreach(Vector3 vertex in positions) {
+            foreach(Vector3 vertex in positions)
+            {
                 float u = (vertex.x - minX) / sizeX;
                 float v = (vertex.z - minZ) / sizeZ;
                 Vector2 uv = new Vector2(u,v);
@@ -193,8 +195,6 @@ namespace MeshGeneration {
             }
             
             mesh.uv = uvs.ToArray();
-            mesh.RecalculateNormals();
-            mesh.RecalculateTangents();
             return mesh;
         }
     }

@@ -21,6 +21,8 @@ public class BathymetryPatcher{
 // grab nearest X neighbors using KNN
 // do inverse distance weighting on nearest points to estimate missing data point
     public List<float> patchChunk(GeoTiffData data){
+        Knn.ResetTree();
+        
         List<float> depths = data.Data;
 
         int width = data.Width;
@@ -40,7 +42,7 @@ public class BathymetryPatcher{
             target.x = x;
             target.y = y;
 
-            Tuple<float[], int>[] nearest = Knn.nearestNeighbors(data, target, numNeighbors, true,settings.SeaLevel);
+            Tuple<float[], int>[] nearest = Knn.nearestNeighbors(data, target, numNeighbors, true, settings.SeaLevel);
 
             float numerator = 0.0f;
             float denominator = 0.0f;
