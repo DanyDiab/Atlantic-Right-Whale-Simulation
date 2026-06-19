@@ -65,6 +65,18 @@ public class BackscatterReader : MonoBehaviour {
             Debug.LogError("Bathymetry directory missing: " + bathyDir);
             return croppedChunks;
         }
+        int validCount = 0;
+        int idx = 0;
+        Dictionary<int,float> help = new Dictionary<int, float>();
+        foreach(float val in masterBackscatter.Data){
+            if (!Mathf.Approximately(val, 1.0f)){
+                validCount++;
+                help[idx] = val;
+            }
+                idx++;
+        }
+        
+        Debug.Log(validCount + " valid points out of " + masterBackscatter.Data.Count);
 
         string[] bathyFiles = Directory.GetFiles(bathyDir, "*.bytes", SearchOption.TopDirectoryOnly);
         int numFiles = bathyFiles.Length;
@@ -80,14 +92,14 @@ public class BackscatterReader : MonoBehaviour {
             string bathyFile = bathyFiles[i];
             DepthDataRecord depthRecord = fileUtil.binToDepthRecord(bathyFile);
             
-            int chunkWidth = 1001;
-            int chunkHeight = 1001;
+            int chunkWidth = Mathf.CeilToInt(1001 / resolutionX);
+            int chunkHeight = Mathf.CeilToInt(1001 / resolutionY);
 
             Vector2 chunkPos = CoordinateProjector.GeoToUTM(depthRecord.tiffData.startCoordsMeters);
             Vector2 backScatterPos = masterBackscatter.startCoordsMeters;
 
-            int offsetX = Mathf.RoundToInt((chunkPos.x - backScatterPos.x) / resolutionX);
-            int offsetY = Mathf.RoundToInt((backScatterPos.y - chunkPos.y) / resolutionY);
+            float offsetX = (chunkPos.x - backScatterPos.x) / resolutionX;
+            float offsetY = (backScatterPos.y - chunkPos.y) / resolutionY;
 
             int width = masterBackscatter.Width;
             int height = masterBackscatter.Height;
@@ -95,46 +107,21 @@ public class BackscatterReader : MonoBehaviour {
             float noDataValue = 1.0f;
             List<float> chunkBS = new List<float>(chunkWidth * chunkHeight);
 
-            for (int y = 0; y < chunkHeight; y++) {
-                int currentY = offsetY + y;
+            float startIdx = (width * offsetY) + offsetX;
 
-                if (currentY < 0 || currentY >= height) {
-                    chunkBS.AddRange(Enumerable.Repeat(noDataValue, chunkWidth));
-                    continue; 
-                }
+            for(int j = 0; j < chunkHeight; j++){
+                int heightOffset = j * width;
+                int currRowStart = Mathf.FloorToInt(heightOffset + startIdx);
 
-                int startX = offsetX;
-                int endX = offsetX + chunkWidth;
-
-                if (endX <= 0 || startX >= width) {
-                    chunkBS.AddRange(Enumerable.Repeat(noDataValue, chunkWidth));
-                    continue; 
-                }
-
-                if (startX < 0 || endX > width) {
-                    for (int x = 0; x < chunkWidth; x++) {
-                        int currentX = startX + x;
-                        
-                        if (currentX < 0 || currentX >= width) {
-                            chunkBS.Add(noDataValue);
-                            continue;
-                        }
-
-                        int index = (currentY * width) + currentX;
-                        chunkBS.Add(masterBackscatter.Data[index]);
-                    }
-                    continue;
-                }
-
-                int rowStartIndex = (currentY * width) + startX;
-                chunkBS.AddRange(masterBackscatter.Data.GetRange(rowStartIndex, chunkWidth));
-            }
+                // grab starting at this row start and append, no other fancy logic. 
+                chunkBS.AddRange(masterBackscatter.Data.GetRange(currRowStart, chunkWidth));
+            } 
 
             GeoTiffData chunkTiff = new GeoTiffData();
             chunkTiff.Data = chunkBS;
             chunkTiff.Width = chunkWidth;
             chunkTiff.Height = chunkHeight;
-            chunkTiff.startCoordsMeters = chunkPos;
+            chunkTiff.startCoordsMeters = depthRecord.tiffData.startCoordsMeters;
             
             chunkTiff.PixelScale = new double[] { resolutionX, resolutionY, 0.0 };
 

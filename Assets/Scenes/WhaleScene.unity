@@ -205,7 +205,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 91705807}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: da4064e82b0c2cc44bcae77f533370e4, type: 3}
   m_Name: 
@@ -213,6 +213,7 @@ MonoBehaviour:
   meshParent: {fileID: 1345709378}
   processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
   reloadTextures: 0
+  uvScale: 5
 --- !u!1 &401151133
 GameObject:
   m_ObjectHideFlags: 0

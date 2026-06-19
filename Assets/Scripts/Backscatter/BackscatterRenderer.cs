@@ -15,6 +15,7 @@ public class BackscatterRenderer : MonoBehaviour {
     
     [Header("Runtime Controls")]
     [SerializeField] bool reloadTextures = false;
+    [SerializeField] float uvScale;
 
     void Start() {
         fileUtil = new FileUtilities();
@@ -77,7 +78,7 @@ public class BackscatterRenderer : MonoBehaviour {
             int texHeight = chunkData.Height;
 
             Texture2D dataTexture = new Texture2D(texWidth, texHeight, TextureFormat.RFloat, false);
-            dataTexture.filterMode = FilterMode.Point;
+            dataTexture.filterMode = FilterMode.Bilinear;
             dataTexture.wrapMode = TextureWrapMode.Clamp;
 
             for (int y = 0; y < texHeight; y++) {
@@ -95,7 +96,7 @@ public class BackscatterRenderer : MonoBehaviour {
 
             block.SetFloat("TotalElements", vals.Count);
             block.SetTexture("_Data", dataTexture);
-
+            block.SetFloat("_UVscale", uvScale);
             renderer.SetPropertyBlock(block);
         }
     }
