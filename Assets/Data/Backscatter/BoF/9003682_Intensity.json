@@ -309,7 +309,7 @@
                 "backscatterRangeMin": null,
                 "backscatterRangeMax": null
             }
-        },
+        }, 
     "backscatterProduct": {
         "bckAuthor": {
             "organization": "Seascape Ecology & Mapping Lab (SEAM) Dalhousie University | Department of Oceanography",

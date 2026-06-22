@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
 using UnityEngine;
 
@@ -65,13 +66,13 @@ public class BackscatterRenderer : MonoBehaviour {
 
             GeoTiffData chunkData = fileUtil.binToTiffData(binFile);
 
-            if(chunkData.Data.Count(x => Mathf.Approximately(x, 1.0f)) == chunkData.Data.Count())
-            {
+            if(chunkData.Data.Count(x => x > 1.0f) == chunkData.Data.Count()){
                 Debug.LogWarning("Renderer: this entire grabbed chunk is invalid!");
             }
+            
             if(chunkData == null || chunkData.Data == null) continue;
 
-            List<float> vals = chunkData.Data;
+                    List<float> vals = chunkData.Data;
             MaterialPropertyBlock block = new MaterialPropertyBlock();
 
             int texWidth = chunkData.Width;

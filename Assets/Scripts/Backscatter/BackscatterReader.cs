@@ -135,9 +135,10 @@ public class BackscatterReader : MonoBehaviour {
             return;
         }
 
+
         int chunkCount = tiffChunks.Count;
         for (int i = 0; i < chunkCount; i++) {
-            rasterProjector.GEOtoUTM(tiffChunks[i]);
+            rasterProjector.UTMtoGEO(tiffChunks[i]);
         }
     }
 
@@ -147,7 +148,15 @@ public class BackscatterReader : MonoBehaviour {
 
         float min = rawData.Min();
         float max = rawData.Max();
-        float range = max - min;
+
+        // remove the max then nornamlize
+        float newMax = float.MinValue;
+        foreach(float val in rawData){
+            if(val > newMax && val != max) newMax = val;
+        }
+        // rawData.RemoveAll(n => n == max);
+
+        float range = newMax - min;
         
         List<float> normalized = new List<float>(rawData.Count);
         int numberNoData = 0;
