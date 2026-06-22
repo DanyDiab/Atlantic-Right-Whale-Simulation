@@ -30,6 +30,22 @@ public class BackscatterRenderer : MonoBehaviour {
         reloadTextures = false;
     }
 
+    List<float> normalizeList(List<float> vals){
+        List<float> normalized = new List<float>(vals.Count);
+        
+        float max = vals.Max();
+        float min = vals.Min();
+
+        float range = max - min;
+
+        foreach(float val in vals){
+            float normal = (val - min) / range;
+            normalized.Add(normal);
+        }
+
+        return normalized;
+    }
+
     void loadAndAssignTextures() {
         string area = processingSettings.AreaToFilePath();
         string dir = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
@@ -72,7 +88,9 @@ public class BackscatterRenderer : MonoBehaviour {
             
             if(chunkData == null || chunkData.Data == null) continue;
 
-                    List<float> vals = chunkData.Data;
+            List<float> vals = chunkData.Data;
+            List<float> normalized = normalizeList(vals);
+
             MaterialPropertyBlock block = new MaterialPropertyBlock();
 
             int texWidth = chunkData.Width;
@@ -86,7 +104,7 @@ public class BackscatterRenderer : MonoBehaviour {
                 for (int x = 0; x < texWidth; x++) {
                     int index = (y * texWidth) + x;
 
-                    float val = index < vals.Count ? vals[index] : 0.0f;
+                    float val = index < normalized.Count ? normalized[index] : 0.0f;
 
                     Color pixelColor = new Color(val, 0.0f, 0.0f, 0.0f);
                     dataTexture.SetPixel(x, y, pixelColor);
@@ -95,7 +113,7 @@ public class BackscatterRenderer : MonoBehaviour {
 
             dataTexture.Apply();
 
-            block.SetFloat("TotalElements", vals.Count);
+            block.SetFloat("TotalElements", normalized.Count);
             block.SetTexture("_Data", dataTexture);
             block.SetFloat("_UVscale", uvScale);
             renderer.SetPropertyBlock(block);
