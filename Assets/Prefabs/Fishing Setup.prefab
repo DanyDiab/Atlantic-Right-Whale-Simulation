@@ -213,7 +213,8 @@ Transform:
   m_LocalPosition: {x: -0.4, y: 0.25, z: -0.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6203081823686036187}
   m_Father: {fileID: 4762302759908871755}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8372570642587048265
@@ -234,6 +235,126 @@ MonoBehaviour:
   m_enableMassProperties: 1
   m_material: {fileID: 11400000, guid: 70023d4ec488a4b4a8d6c32cb750971b, type: 2}
   m_halfExtents: {x: 4.16, y: 2.48, z: 3}
+--- !u!1 &8843641680929531134
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6203081823686036187}
+  - component: {fileID: 576500171470730611}
+  - component: {fileID: 408527386222368962}
+  - component: {fileID: 4745216109468048588}
+  - component: {fileID: 6175539318532892086}
+  m_Layer: 0
+  m_Name: AGXUnity.Collide.Box (1)_Visual
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6203081823686036187
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8843641680929531134}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.83199996, y: 0.49600002, z: 0.6}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4433275845470772977}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &576500171470730611
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8843641680929531134}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &408527386222368962
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8843641680929531134}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 2dd5f02866e453041b20d3d429c2b0d3, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 0
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4745216109468048588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8843641680929531134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a39fce5ca1a43ed488bf0d4d38bbabea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AGXUnity::AGXUnity.Rendering.ShapeVisualBox
+  m_serializationVersion: 1
+  m_shape: {fileID: 8372570642587048265}
+--- !u!114 &6175539318532892086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8843641680929531134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f51c5940a8ebcfc4997616eb2929ad13, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: AGXUnity::AGXUnity.Utils.OnSelectionProxy
+  m_serializationVersion: 1
+  m_component: {fileID: 8372570642587048265}
 --- !u!1001 &3498638053561478121
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -294,6 +415,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: b264ebe53148690438a4dec82d86ae2b, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: b264ebe53148690438a4dec82d86ae2b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: -3033667219593020291, guid: b264ebe53148690438a4dec82d86ae2b, type: 3}
     - target: {fileID: 919132149155446097, guid: b264ebe53148690438a4dec82d86ae2b, type: 3}
       propertyPath: m_Name
       value: GDT18
@@ -339,11 +468,11 @@ MonoBehaviour:
     <RigidBody>k__BackingField: {fileID: 8196953213638250510}
     m_mass:
       m_defaultToggle: 1
-      m_defaultValue: 731.94904
+      m_defaultValue: 1829.8726
       m_userValue: 60
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 1094.7893, y: 506.51196, z: 1094.7893}
+      m_defaultValue: {x: 2736.9731, y: 1266.2799, z: 2736.9731}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
@@ -443,6 +572,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Trap
       objectReference: {fileID: 0}
+    - target: {fileID: 8164078558771037576, guid: e7438ef32ce2b5c498fec067f019fecb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -486,11 +619,11 @@ MonoBehaviour:
     <RigidBody>k__BackingField: {fileID: 6349416224382800816}
     m_mass:
       m_defaultToggle: 1
-      m_defaultValue: 247603.19
+      m_defaultValue: 371404.78
       m_userValue: 60
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 1250429.1, y: 2171116.8, z: 1935926.8}
+      m_defaultValue: {x: 1875643.8, y: 3256675, z: 2903890}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
