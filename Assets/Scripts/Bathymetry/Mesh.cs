@@ -26,6 +26,10 @@ namespace MeshGeneration {
         [SerializeField] ProcessingSettings processingSettings;
         [SerializeField] List<DepthDataRecord> records;
 
+        public delegate void MeshGenerationEvent();
+
+        public static event MeshGenerationEvent OnMeshGenerated;
+
         string byteFileDir;
 
         void Start() {
@@ -61,6 +65,7 @@ namespace MeshGeneration {
 
             traversePath(byteFileDir);
             generateAllMeshes();
+            OnMeshGenerated?.Invoke();
         }
 
         void traversePath(string path) {
@@ -83,6 +88,19 @@ namespace MeshGeneration {
             }
         }
 
+        void attachAGXMeshCollider(GameObject meshObj){
+            MeshFilter mf = meshObj.GetComponent<MeshFilter>();
+            if(mf == null)
+            {
+                Debug.Log("did not find mesh filter to add AGX mesh");
+                return;
+            }
+
+            AGXUnity.Collide.Mesh agxMesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>();
+
+            agxMesh.AddSourceObject(mf.mesh);
+        }
+
         void generateAllMeshes() {
             float chunkSize = processingSettings.chunkSize;
             foreach (DepthDataRecord record in records) {
@@ -99,10 +117,14 @@ namespace MeshGeneration {
                 MeshFilter meshFilter = chunkObject.AddComponent<MeshFilter>();
                 MeshRenderer meshRenderer = chunkObject.AddComponent<MeshRenderer>();
                 meshRenderer.material = meshMaterial;
+                chunkMesh.name = chunkObject.name;
 
-                meshFilter.mesh = chunkMesh;
+
+                meshFilter.sharedMesh = chunkMesh;
 
                 chunkObject.transform.position = new Vector3(north, 0, west);
+
+                attachAGXMeshCollider(chunkObject);
             }
         }
 
