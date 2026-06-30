@@ -5,10 +5,12 @@ using System;
 
 using UnityMesh = UnityEngine.Mesh;
 using UnityEngine.InputSystem;
+using AGXUnity;
+using agxCollide;
 
 namespace MeshGeneration {
 
-    public class Mesh : MonoBehaviour {
+    public class Mesh : AGXUnity.ScriptComponent {
 
         [Header("General")]
         [Tooltip("Parent of all the mesh chunks")]
@@ -30,14 +32,20 @@ namespace MeshGeneration {
 
         public static event MeshGenerationEvent OnMeshGenerated;
 
+        agx.RigidBody native;
+
         string byteFileDir;
 
-        void Start() {
+        protected override bool Initialize() {
             records = new List<DepthDataRecord>();
             fileUtil = new FileUtilities();
             string areaPath = processingSettings.AreaToFilePath();
             byteFileDir = Path.Combine(Application.dataPath, "Data", "Processed", areaPath);
-            reloadMesh = true;
+            // reloadMesh = true;
+            startMeshPipeline();
+            
+            return base.Initialize();
+
         }
 
         void Update()
@@ -88,6 +96,11 @@ namespace MeshGeneration {
             }
         }
 
+        // public T GetInitialized<T>() where T : ScriptComponent
+        // {
+        //     for()
+        // }
+
         void attachAGXMeshCollider(GameObject meshObj){
             MeshFilter mf = meshObj.GetComponent<MeshFilter>();
             if(mf == null)
@@ -95,10 +108,12 @@ namespace MeshGeneration {
                 Debug.Log("did not find mesh filter to add AGX mesh");
                 return;
             }
+            native  = new agx.RigidBody();
+            native.add( new agxCollide.Geometry( new agxCollide.Sphere( 100000 ) ) );
+            GetSimulation().add(native);
 
-            AGXUnity.Collide.Mesh agxMesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>();
+            
 
-            agxMesh.AddSourceObject(mf.mesh);
         }
 
         void generateAllMeshes() {

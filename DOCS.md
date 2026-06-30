@@ -111,13 +111,13 @@ In this master file, we normalize the values from the range defined in the JSON 
 
 #### Cropping 
 
-Before continuing, we should understand the key motivation and purpose of the next two steps. The key motivation for this step, while it is to reduce the compuation time, the key insight is that the Bathymetry data is in Geographical Latitude and Longitude, and the backscatter is in UTM. We need a way to spatially relate these two datasets. They need to be brought into the same coordinate space. This can be done using projections. we should also note that projecting is an **expensive** operation, especially on large datasets. This will be gone into more detail in the next section, **Projection**.
+Before continuing, we should understand the key motivation and purpose of the next two steps. The key motivation for this step, while it is to reduce the compuation time, the key insight is that the Bathymetry data is in Geographical Latitude and Longitude, and the backscatter is in UTM, two differnt coordinate spaces. We need a way to spatially relate these two datasets. They need to be brought into the same coordinate space. This can be done using projections. we should also note that projecting is an **expensive** operation, especially on large datasets. This will be gone into more detail in the next section, **Projection**.
 
-Now armed with infomation of why we need to project datasets, and that it is computationally expensive, we should then decide which coordinate space we should unify both datasets into. After some initial thoughts, it made more sense to normalize the backscatter into geographical latitude and longitude. 
+Now armed with information of why we need to project datasets, and that it is computationally expensive, we should then decide which coordinate space we should unify both datasets into. After some initial thoughts and experimentation, it made more sense to normalize the backscatter into geographical latitude and longitude. 
 
-**Why? (Skip this part if wanted)**
+**Why?**
 
-While this may seem counter intuitive, why would I pick to normalize into geographical coordintes rather than use UTM. After all, UTM measures in **METERS**, and lat/long is in degrees. Surely working with meters would be easier than working with degrees. This too was my initial thought process. So I commenced converting the Bathymetry data into UTM, and this is where complications and my assumptions from earlier in the project came back around. Earlier in the project when handling the Bathymetry files, I noted that the chunks of bathymetry are 10KM^2 of data, and each is 10 "arbitrary units" apart. This way I could map the bathymetry data onto a flat surface Later on I came to learn that these arbitrary units were degrees of Latitude and Longitude, so my assumption was **warping** the space. When converting into UTM, now I was a real projection, rather than my made up system, so now each chunk, rather than being arbitraily placed 10KM apart, they were uniquely unevenly spaced. Some chunks were 7.8KM apart, others 7.9. At this point, I decided that converting to UTM was **feasible**, but it would be like running into a brick wall. If I wanted to continue down this path, I would likely need to **redesign** my entire system from the ground up. Hence, the decision was taken, I will continue to make my assumption of .1 Degree of Lat/Long = 10KM, and I will convert backscatter into Lat/Long.
+While this may seem counter intuitive, why would I pick to normalize into geographical coordintes rather than use UTM. After all, UTM measures in **METERS**, and lat/long is in degrees. Surely working with meters would be easier than working with degrees, especially since we are using the Unity engine, where 1 unit = 1 meter. This too was my initial thought process. So I commenced converting the Bathymetry data into UTM, and this is where complications and my assumptions from earlier in the project came back around. Earlier in the project when handling the Bathymetry files, I noted that the chunks of bathymetry are 10KM^2 of data, and each file is 10 "arbitrary units" apart. For example, a file would be named 4510N06500W, and the file next to it would be 4510N06510W, note how the files are 10 units W apart. This way I could map the bathymetry data onto a flat surface. Later on, I came to learn that these arbitrary units were degrees of Latitude and Longitude, so my assumption was **warping** the space, especially streching the sapce east, west wise, using a projection called the Equirectangular projection. When converting into UTM, now I was using a projection that is designed to cause the least local warping possible. Hoever instead of the warping the sapce by streaching east west, it would reduce this effect, cauasing chunks to be not evenly sized chunks.  so now each chunk, rather than being arbitraily placed 10KM apart, they were uniquely unevenly spaced, respecting the curvature of the Earth. Some chunks were 7.8KM apart, others 7.9. At this point, I decided that converting to UTM was **feasible**, but it would be like running into a brick wall. If I wanted to continue down this path, I would likely need to **redesign** my entire system from the ground up, to account for uneven chunk sizes. After giving that some thought as it would increase accuracy of the enviornment, it proved to be complicated. Hence, the decision was taken, I will continue to make my assumption of .1 Degree of Lat/Long = 10KM, and I will convert backscatter into Lat/Long.
 
 **Back to the pipeline**
 
@@ -161,7 +161,52 @@ The process of writing to a binary file is trivial. It follows the following str
 THIS IS STILL BEING WORKED ON!
 
 
+## Systems I have worked with
+
+This section will act as a reference for all the knowledge I have on different systems, how they operate, how to use them, and other importnat infomration relating to the system.
+
+
+### Algoryx for Unity (AGX)
+
+Algoryx is the physics engine driving the simulation. AGX appears to be more predictable than Obi (our previous system). Once everything is setup properly, the system works. However sometimes the system, especially when under heavy load, in particular with many contact points with a rope, can become unstable. 
+
+#### Important Links
+Here are some important links for learning, which is where I got most of my information from (alongside reading source code).
+
+Algoryx for Unity Documentation: https://us.download.algoryx.se/AGXUnity/documentation/current/index.html
+<br>
+Algoryx Developer Guide: ```./Assets/AGXUnity/DeveloperGuide.md``` 
+
+
+#### General AGX System Architecture
+
+AGX, in our case is being used as a plugin for Unity. It contains different components that can be attached to game objects. It appears that once an AGX component interacts with a game object, that game object gets locked off from runtime changes that does not go through their system.
+
+This is because AGX keeps a track of all gameobjects separately into a "**native**"  system. 
+
+From what I have seen there are 2 sides to AGX scripting. The term refers to any scripting where you are interacting or handling AGX objects. 
+
+1. AGXUnity.XYZ
+2. agx.XYZ
+
+I have found this confusing. There are typically 2 copies of for example a Mesh, AGXUnity.Collide.Mesh, and agxCollide.Mesh. After diving into the source for both it appears that the distinction is the following:
+
+anything with AGXUnity, interacts with unity side things, in the case of mesh, AGXUnity will create a mesh from a Unity Mesh. On the other hand, anything that does not contain **Unity**, namely **agx**, rather interacts with some precompiled DLL file. These agx namepsace files are decompiled using Swig. AGX hides away the key logic for most of their physics behind precompiled DLL Files that were turned into DLL from their C++ main engine. It appears they used a tool called **Swig** to complete this task https://github.com/swig/swig.
+
+#### Current Development Struggles
+
+As the above has mentioned, working with AGX has been quite tricky. The documentation on the Unity side of the system is sparse. And while looking through the source code, we have to dig through source that has multiple defintions (for example, multiple meshs), it is easy to find functions that sound like they would work, but after giving them a try, it does not work. 
+
+As well as that, due to the fact of a section of the code being decompiled, it is harder to read nad make out the purpose, and often times is hard to call certain funcitons due to parameters that are unclear. 
+
+A current struggle with development is attempting to sync objects updating through a script into the native AGX system. After trying many differnt approaches, we have not had any luck regarding this. 
+
+Moving on to the simulation itself, AGX is memory hungry. Testing will need to be done on a machine with less memory, as my development has recently been exclusivly on the simulation computer with 64GB of Ram.
+
+I have found that often, with multiple contact points, the simulation performance degrades, or even becomes unstable. In these cases, the memory usage jumps, in the extreme cases up to ~30GB.
+
 ## References
 
 https://en.wikipedia.org/wiki/Bathymetry
 https://en.wikipedia.org/wiki/Backscatter
+https://en.wikipedia.org/wiki/Equirectangular_projection
