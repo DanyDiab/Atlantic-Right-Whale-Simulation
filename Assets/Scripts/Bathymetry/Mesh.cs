@@ -7,6 +7,9 @@ using UnityMesh = UnityEngine.Mesh;
 using UnityEngine.InputSystem;
 using AGXUnity;
 using agxCollide;
+using Unity.VisualScripting;
+using UnityEditor;
+using AGXUnity.Collide;
 
 namespace MeshGeneration {
 
@@ -32,7 +35,7 @@ namespace MeshGeneration {
 
         public static event MeshGenerationEvent OnMeshGenerated;
 
-        agx.RigidBody native;
+        AGXUnity.RigidBody native;
 
         string byteFileDir;
 
@@ -108,13 +111,48 @@ namespace MeshGeneration {
                 Debug.Log("did not find mesh filter to add AGX mesh");
                 return;
             }
-            native  = new agx.RigidBody();
-            native.add( new agxCollide.Geometry( new agxCollide.Sphere( 100000 ) ) );
-            GetSimulation().add(native);
 
-            
+            AGXUnity.Collide.Mesh m_mesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>().GetInitialized();
+            m_mesh.AddSourceObject(mf.mesh);
+            m_mesh.Options.Mode = AGXUnity.Collide.CollisionMeshOptions.MeshMode.ConvexDecomposition;
+            native = meshObj.AddComponent<AGXUnity.RigidBody>().GetInitialized();
+            native.Native.setMotionControl(agx.RigidBody.MotionControl.STATIC);
+
+            m_mesh.Options.MergeNearbyEnabled = true;
+            CollisionMeshGenerator generator = new CollisionMeshGenerator();
+
+            AGXUnity.Collide.Mesh[] meshes = new AGXUnity.Collide.Mesh[1];
+            meshes[0] = m_mesh;
+// 
+            var results = generator.Generate(meshes);
+
+            foreach ( var result in results ) {
+                result.Mesh.PrecomputedCollisionMeshes = result.CollisionMeshes;
+            }
+            m_mesh.OnPrecomputedCollisionMeshDataDirty();
+            m_mesh.SetRigidBody(native);
+
+            GetSimulation().add(m_mesh.RigidBody.Native, true);
 
         }
+        void SaveMeshPrefab(GameObject meshObj) {
+        string directoryPath = Application.dataPath + "/prefabs/";
+
+        string localPath = Application.dataPath + "/prefabs/" + meshObj.name + ".prefab";
+
+        string assetPath = "Assets/prefabs/" + meshObj.name + ".prefab";
+        string meshAssetPath = "Assets/prefabs/" + meshObj.name + "_Mesh.asset";
+
+        MeshFilter meshFilter = meshObj.GetComponent<MeshFilter>();
+        UnityMesh sharedMesh = meshFilter.sharedMesh;
+
+        AssetDatabase.CreateAsset(sharedMesh, meshAssetPath);
+        AssetDatabase.SaveAssets();
+
+        PrefabUtility.SaveAsPrefabAsset(meshObj, assetPath);
+        
+        AssetDatabase.Refresh();
+    }
 
         void generateAllMeshes() {
             float chunkSize = processingSettings.chunkSize;

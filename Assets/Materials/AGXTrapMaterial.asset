@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: AGXTrapMaterial
   m_EditorClassIdentifier: AGXUnity::AGXUnity.ShapeMaterial
   m_serializationVersion: 1
-  m_density: 1500
+  m_density: 982.4
   m_youngsWireStretch: 1e+10
   m_youngsWireBend: 1e+9
   m_dampingStretch: 0.06
