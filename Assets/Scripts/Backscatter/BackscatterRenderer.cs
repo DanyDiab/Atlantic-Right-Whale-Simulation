@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Hashing;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BackscatterRenderer : MonoBehaviour {
@@ -26,7 +27,7 @@ public class BackscatterRenderer : MonoBehaviour {
     void Update() {
         if(!reloadTextures) return;
         
-        loadAndAssignTextures();
+        // loadAndAssignTextures();
         reloadTextures = false;
     }
 
