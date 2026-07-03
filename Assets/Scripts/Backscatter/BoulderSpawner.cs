@@ -21,15 +21,16 @@ public class BoulderSpawner : MonoBehaviour
 
     List<GameObject> activeBoulders;
     FileUtilities fileUtil;
-    bool shouldSpawnBoulders;
+    [SerializeField] bool shouldSpawnBoulders;
 
     void Start(){
+        activeBoulders = new List<GameObject>();
         fileUtil = new FileUtilities();
         shouldSpawnBoulders = true;
     }
 
     void Update(){
-        if(shouldSpawnBoulders)
+        if (!shouldSpawnBoulders) return;
 
         ReadBackscatterAndSpawnBoulders();
 
@@ -76,7 +77,7 @@ public class BoulderSpawner : MonoBehaviour
 
             string binFile = bins[i];
             string fileName = Path.GetFileName(binFile);
-            string bathyFile = Path.Combine(bathyDir, fileName);
+            string bathyFile = bathyDir + "/" + fileName;
 
             if (!File.Exists(bathyFile)) {
                 Debug.LogWarning("Missing matching bathymetry file for: " + fileName);
@@ -132,7 +133,7 @@ public class BoulderSpawner : MonoBehaviour
             int pixelY = Mathf.RoundToInt(randZ * (height - 1));
             int index = (pixelY * width) + pixelX;
             
-            Vector3 chosenPos = new Vector3(chosenX, tiffData.Data[index], chosenZ);
+            Vector3 chosenPos = new Vector3(chosenX, tiffData.Data[index] - 1, chosenZ);
 
             float randScale = Random.Range(0f, 1f);
             float chosenScale = Mathf.Lerp(minScale, maxScale, randScale);
@@ -156,14 +157,17 @@ public class BoulderSpawner : MonoBehaviour
 
 
     private DepthDataRecord readTiff(string filePath) {
-        DepthDataRecord depthDataRecord = new DepthDataRecord();
+        string cleanPath = Path.GetFullPath(filePath);
 
-        if (string.IsNullOrEmpty(filePath)) {
+         DepthDataRecord depthDataRecord = null;
+        if (string.IsNullOrEmpty(cleanPath)) {
             return depthDataRecord;
         }
-        
-        GeoTiffData data = fileUtil.ReadGeoTiff(filePath, new float[]{processingSettings.MaxDepth, processingSettings.SeaLevel});
-        depthDataRecord.tiffData = data;
+        if (!File.Exists(cleanPath))
+        {
+            Debug.LogWarning("Bro where is the filE!!!!?????");
+        }
+        depthDataRecord = fileUtil.binToDepthRecord(cleanPath);
 
         return depthDataRecord;
     }

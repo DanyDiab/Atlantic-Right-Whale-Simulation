@@ -158,7 +158,52 @@ The process of writing to a binary file is trivial. It follows the following str
 
 ### Backscatter Runtime Step
 
-THIS IS STILL BEING WORKED ON!
+The Backscatter Runtime step is currently being worked onand iterated on based on feedback from Jay, one of the oceanographer on the team. 
+
+This upcoming iteration, while sacrificing some bathymetry realism, we can achieve greater plausibility. This can be done by mapping a flat mud texture to the exisitng bathymetry mesh. 
+
+Then we can place boulders using a rock texture scattered across a given chunk that we would like to render.
+
+Generally the process follows these steps:
+
+1. Read in Processed Backscatter
+2. Read in Processed Bathymetry
+3. Sample some Pseudorandom numbers to lerp between some defined properties.
+
+
+
+Step 1 and 2 are relatively trivial as it consits of reading in the processed work that we have completed before. The layout of these binary files can be found in sections above.
+
+
+#### Pseudorandom Properties
+
+This section is not too difficult/complex to understand, however it is important to have a record of. Note that it is likely that this section would change. If the feedback recieved on  this iteration indicates that change is needed.
+
+
+Regardless, moving on to the system.
+
+First, we define a min and max scale, and min and max number of boulders. 
+
+After having read in the backscatter and bathymetry, we take the average of the entire chunk's bathymetry. The reason we do this is for a few reasons, but the main being for simplicity sake. As I had observed, the Backscatter values do not tend to deviate much from the average, and so taking an average of the entire chunk would not destory too much detail, while simplifying further usage. 
+
+We then use this average to lerp between the bottom number of boulders and the top. The idea is that higher backscatter values means rouger terrain, which can equate to more boulders.
+
+To destory the self similiarity bgetween boulders, we sample a pseduo random number ot lerp between a defined min and max scale, as well as position. 
+
+However for position, we use the chunks bounds to determine where it should be placed, to ensure the boulders stay within the chunks space. 
+
+
+#### Texture
+
+Once again this section is possible to have changes, and none of it is implemented yet.
+
+Depsite this is how I plan on implementing and creating textures for the boulders. The goal is destory the self similiarity between differnt rocks. 
+
+I plan on using perlin ridge noise along with multiple octaves, using fBm. More can be found here: https://thebookofshaders.com/13/ (note, this website is very cool!, wnd I would recommend checking it out!)
+
+The idea of using this type of noise is to introduce the ridges and roughness that boulders typically have due to erosion. 
+
+I plan on having a target color. Say around a grey. Then for each boulder, we should deviate slightly from this defined color. We can pick a random unit vector in 3D space. Then we can allow this vector to be scaled by a certain small value. From there, we can add this small deviation into the color, producing a color that is plausible, but slightly differnt boulder to boulder.
 
 
 ## Systems I have worked with
