@@ -10,12 +10,27 @@ public class BoulderSpawner : MonoBehaviour
     [SerializeField] GameObject boulderParent;
     [SerializeField] GameObject meshParent;
 
-    int minNumBoulders = 0;
+    [Header("Number Of Clumps")]
+    [SerializeField] int minNumClumps = 0;
 
-    int maxNumBoulders = 100;
+    [SerializeField] int maxNumClumps = 20;
 
-    float minScale = 10f;
-    float maxScale = 30f;
+
+    [Header("Number Of Boulders Per Clump")]
+
+    [SerializeField] int minNumBouldersPerClump = 5;
+    [SerializeField] int maxNumBouldersPerClump = 15;
+
+    [Header("Boulder Clump Deviation")]
+    [SerializeField] float clumpBoulderDeviation = 90;
+
+
+    [Header("Boulder Scale")]
+
+    [SerializeField]float minScale = 10f;
+    [SerializeField]float maxScale = 30f;
+
+    [SerializeField]float scaleDeviation = 3f;
 
     [SerializeField] ProcessingSettings processingSettings;
 
@@ -32,6 +47,7 @@ public class BoulderSpawner : MonoBehaviour
     void Update(){
         if (!shouldSpawnBoulders) return;
 
+        clearBoulders();
         ReadBackscatterAndSpawnBoulders();
 
         shouldSpawnBoulders = false;
@@ -41,28 +57,22 @@ public class BoulderSpawner : MonoBehaviour
     public void ReadBackscatterAndSpawnBoulders() {
         string area = processingSettings.AreaToFilePath();
         string bsDir = Path.Combine(Application.dataPath, "Data", "Processed", "Backscatter", area);
-        string bathyDir = Path.Combine(Application.dataPath, "Data", "Processed", area);
 
         if (!Directory.Exists(bsDir)) {
             Debug.LogError("The backscatter directory is missing: " + bsDir);
             return;
         }
 
-        if (!Directory.Exists(bathyDir)) {
-            Debug.LogError("The bathymetry directory is missing: " + bathyDir);
-            return;
-        }
-
-        Renderer[] meshRenderers;
+        MeshFilter[] meshFilters;
         if (meshParent != null) {
-            meshRenderers = meshParent.GetComponentsInChildren<Renderer>(true);
+            meshFilters = meshParent.GetComponentsInChildren<MeshFilter>(true);
         } else {
-            meshRenderers = GetComponentsInChildren<Renderer>(true);
+            meshFilters = GetComponentsInChildren<MeshFilter>(true);
         }
 
-        int numRenderers = meshRenderers.Length;
-        if (numRenderers == 0) {
-            Debug.LogWarning("No terrain renderers found to apply textures to.");
+        int numFilters = meshFilters.Length;
+        if (numFilters == 0) {
+            Debug.LogWarning("No terrain mesh filters found to apply boulders to.");
             return;
         }
 
@@ -71,20 +81,11 @@ public class BoulderSpawner : MonoBehaviour
         int numFiles = bins.Length;
 
         for (int i = 0; i < numFiles; i++) {
-            if (i >= numRenderers) {
+            if (i >= numFilters) {
                 break;
             }
 
             string binFile = bins[i];
-            string fileName = Path.GetFileName(binFile);
-            string bathyFile = bathyDir + "/" + fileName;
-
-            if (!File.Exists(bathyFile)) {
-                Debug.LogWarning("Missing matching bathymetry file for: " + fileName);
-                continue;
-            }
-
-            Renderer renderer = meshRenderers[i];
             GeoTiffData chunkData = fileUtil.binToTiffData(binFile);
 
             if (chunkData == null || chunkData.Data == null) {
@@ -103,46 +104,82 @@ public class BoulderSpawner : MonoBehaviour
 
             float chunkBSAverage = vals.Average();
 
-            DepthDataRecord bathyRecord = readTiff(bathyFile);
+            MeshFilter currentFilter = meshFilters[i];
+            Renderer currentRenderer = currentFilter.GetComponent<Renderer>();
 
-            Vector3 minBounds = renderer.bounds.min;
-            Vector3 maxBounds = renderer.bounds.max;
+            if (currentRenderer == null) {
+                Debug.LogWarning("MeshFilter does not have an attached Renderer to calculate bounds.");
+                continue;
+            }
+
+            Vector3 minBounds = currentRenderer.bounds.min;
+            Vector3 maxBounds = currentRenderer.bounds.max;
             
             Vector2 chunkMinBounds2D = new Vector2(minBounds.x, minBounds.z);
             Vector2 chunkMaxBounds2D = new Vector2(maxBounds.x, maxBounds.z);
 
-            spawnBoulders(chunkMinBounds2D, chunkMaxBounds2D, chunkBSAverage, bathyRecord);
+            spawnBoulders(chunkMinBounds2D, chunkMaxBounds2D, chunkBSAverage, currentFilter);
         }
     }
 
-    public void spawnBoulders(Vector2 chunkMinBounds, Vector2 chunkMaxBounds, float chunkBSAverage, DepthDataRecord bathy) {
-        int numBouldersToSpawn = Mathf.RoundToInt(Mathf.Lerp(minNumBoulders, maxNumBoulders, chunkBSAverage));
+    public void spawnBoulders(Vector2 chunkMinBounds, Vector2 chunkMaxBounds, float chunkBSAverage, MeshFilter meshFilter) {
+        Mesh mesh = meshFilter.mesh;
+        Vector3[] vertices = mesh.vertices;
 
-        GeoTiffData tiffData = bathy.tiffData;
-        int width = tiffData.Width;
-        int height = tiffData.Height;
+        int numClumps = Mathf.RoundToInt(Mathf.Lerp(minNumClumps, maxNumClumps, chunkBSAverage));
 
-        for (int i = 0; i < numBouldersToSpawn; i++) {
+        int width = Mathf.RoundToInt(Mathf.Sqrt(vertices.Length));
+        int height = width;
+
+        for (int i = 0; i < numClumps; i++) {
+            
+
+            float randNumBouldersT = Random.Range(0f, 1f);
+
+            int numBouldersToSpawn = Mathf.RoundToInt(Mathf.Lerp(minNumBouldersPerClump, maxNumBouldersPerClump, randNumBouldersT));
+
             float randX = Random.Range(0f, 1f);
             float randZ = Random.Range(0f, 1f);
 
-            float chosenX = Mathf.Lerp(chunkMinBounds.x, chunkMaxBounds.x, randX);
-            float chosenZ = Mathf.Lerp(chunkMinBounds.y, chunkMaxBounds.y, randZ);
 
-            int pixelX = Mathf.RoundToInt(randX * (width - 1));
-            int pixelY = Mathf.RoundToInt(randZ * (height - 1));
-            int index = (pixelY * width) + pixelX;
-            
-            Vector3 chosenPos = new Vector3(chosenX, tiffData.Data[index] - 1, chosenZ);
+            int clumpX = Mathf.RoundToInt(randX * (width - 1));
+            int clumpY = Mathf.RoundToInt(randZ * (height - 1));
 
-            float randScale = Random.Range(0f, 1f);
-            float chosenScale = Mathf.Lerp(minScale, maxScale, randScale);
-            Vector3 scaleVec = new Vector3(chosenScale, chosenScale, chosenScale);
+            for(int j = 0; j < numBouldersToSpawn; j++){    
 
-            GameObject obj = Instantiate(boulderPrefab, chosenPos, Quaternion.identity, boulderParent.transform);
-            obj.transform.localScale = scaleVec;
+                float randDeviationXT = Random.Range(0f, 1f);
+                float randDeviationYT = Random.Range(0f, 1f);
 
-            activeBoulders.Add(obj);
+                int deviationX = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationXT));
+                int deviationY = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationYT));
+
+                int chosenVertexX = Mathf.Clamp(clumpX + deviationX, 0, vertices.Length - 1);
+                int chosenVertexY = Mathf.Clamp(clumpY + deviationY, 0, vertices.Length - 1);
+
+
+                int index = (chosenVertexY * width) + chosenVertexX;
+                
+                if (index < 0 || index >= vertices.Length) {
+                    continue;
+                }
+                
+                Vector3 localPos = vertices[index];
+
+                Vector3 worldPos = meshFilter.transform.TransformPoint(localPos);
+
+                float randScale = Random.Range(0f, 1f);
+
+                float chosenScale = Mathf.Lerp(minScale, maxScale, randScale);
+
+                Vector3 randScaleDeviationDir = Random.onUnitSphere;
+
+                Vector3 scaleVec = (randScaleDeviationDir * scaleDeviation) + new Vector3(chosenScale, chosenScale, chosenScale);
+
+                GameObject obj = Instantiate(boulderPrefab, worldPos, Quaternion.identity, boulderParent.transform);
+                obj.transform.localScale = scaleVec;
+
+                activeBoulders.Add(obj);
+            }
         }
     }
 
@@ -152,7 +189,7 @@ public class BoulderSpawner : MonoBehaviour
         for(int i = activeBoulders.Count - 1; i >= 0; i--){
             Destroy(activeBoulders[i]);
             activeBoulders.RemoveAt(i);
-        }        
+        }   
     }
 
 
