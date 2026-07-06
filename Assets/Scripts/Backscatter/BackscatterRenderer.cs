@@ -21,7 +21,7 @@ public class BackscatterRenderer : MonoBehaviour {
 
     void Start() {
         fileUtil = new FileUtilities();
-        loadAndAssignTextures();
+        // loadAndAssignTextures();
     }
 
     void Update() {

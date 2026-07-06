@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: AGXUnity::AGXUnity.Collide.Box
   m_serializationVersion: 1
   m_collisionsEnabled: 1
-  m_isSensor: 0
+  m_isSensor: 1
   m_enableMassProperties: 1
   m_material: {fileID: 0}
   m_halfExtents: {x: 500, y: 200, z: 500}

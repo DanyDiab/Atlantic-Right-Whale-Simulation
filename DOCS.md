@@ -238,17 +238,35 @@ I have found this confusing. There are typically 2 copies of for example a Mesh,
 
 anything with AGXUnity, interacts with unity side things, in the case of mesh, AGXUnity will create a mesh from a Unity Mesh. On the other hand, anything that does not contain **Unity**, namely **agx**, rather interacts with some precompiled DLL file. These agx namepsace files are decompiled using Swig. AGX hides away the key logic for most of their physics behind precompiled DLL Files that were turned into DLL from their C++ main engine. It appears they used a tool called **Swig** to complete this task https://github.com/swig/swig.
 
+
+#### Wires Vs Cables 
+
+Four our purposes of creation of fishing lines, either wires or cables are plausible choices. After  some intial testing of differences between the two, they apepar to work very similiarly. I noticed some performance gains in using wires rather than cables.
+
+The documentatzion also states that it is possible to cut and merge different wires during runtime, which could be help drive realism in the simulation, as fishing gear may break under heavy tension.
+
+The documnetation also states that cables have a fixed resoultion vs wires have dynamic resolution. In this case resolution is referring to how many segmnents are in the rope. Having dyanmic resolution allows for points that could allow for entanglement, where cables might struggle in a similar situation. 
+
+However cables allow for modeling of torsion and plasticity that wires do not. I do not believe that these would be useful for our simulation. 
+
+More can be found here: "https://www.algoryx.se/documentation/complete/agx/tags/latest/doc/UserManual/source/agxcable.html"
+
+
+#### HydroDyanamics (Water)
+
+Creation and Management of hydrodynamics has proven to be quite easy. The main things to keep in mind is that the hydrodynamics expects all objects that are water to be udner the same object. As well as that, Density is the driving force for how buoytant or not an object is. This can be found within the shape material. (Less Dense Objects float more)
+
 #### Current Development Struggles
 
 As the above has mentioned, working with AGX has been quite tricky. The documentation on the Unity side of the system is sparse. And while looking through the source code, we have to dig through source that has multiple defintions (for example, multiple meshs), it is easy to find functions that sound like they would work, but after giving them a try, it does not work. 
 
 As well as that, due to the fact of a section of the code being decompiled, it is harder to read nad make out the purpose, and often times is hard to call certain funcitons due to parameters that are unclear. 
 
-A current struggle with development is attempting to sync objects updating through a script into the native AGX system. After trying many differnt approaches, we have not had any luck regarding this. 
-
 Moving on to the simulation itself, AGX is memory hungry. Testing will need to be done on a machine with less memory, as my development has recently been exclusivly on the simulation computer with 64GB of Ram.
 
-I have found that often, with multiple contact points, the simulation performance degrades, or even becomes unstable. In these cases, the memory usage jumps, in the extreme cases up to ~30GB.
+I have found that often, with multiple contact points, the simulation performance degrades, or even becomes unstable. In these cases, the memory usage jumps, in the extreme cases up to ~30GB. Some recent insight into this issue reveals this performance degredation only happens when a wire gets caught between multiple colliders. Increasing the number of iterations (doing more computation) allows for greater stability, while sacrficing some performance. It is also noteworthy to mention that even while incrasing this, the simulation still has become unstable and has crashed on numerous occasions. 
+
+
 
 ## References
 

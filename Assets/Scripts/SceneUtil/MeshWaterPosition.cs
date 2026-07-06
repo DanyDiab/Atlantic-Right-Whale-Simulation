@@ -16,10 +16,22 @@ public class MeshWaterPosition : MonoBehaviour{
     [SerializeField] ProcessingSettings settings;
 
     [SerializeField] WindAndWaterManager windAndWaterManager;
+
+    [SerializeField] bool spawnWater = true;
+
+    [SerializeField] GameObject waterParent;
     
 
     void Awake(){
-        MeshGeneration.Mesh.OnMeshGenerated += assignWaterToChunks;
+        // MeshGeneration.Mesh.OnMeshGenerated += assignWaterToChunks;
+    }
+
+
+    void Update(){
+        if (spawnWater){
+            assignWaterToChunks();
+            spawnWater = false;
+        }
     }
     public void assignWaterToChunks() {
         Transform[] chunks = meshParent.GetComponentsInChildren<Transform>();
@@ -54,7 +66,7 @@ public class MeshWaterPosition : MonoBehaviour{
             Vector3 worldWaterCenter = trans.TransformPoint(meshBounds.center);
             worldWaterCenter.y = worldSeaLevelY - halfHeightY;
 
-            GameObject waterInstance = Instantiate(waterBoxPrefab, worldWaterCenter, trans.rotation, trans);
+            GameObject waterInstance = Instantiate(waterBoxPrefab, worldWaterCenter, trans.rotation, waterParent.transform);
             AGXUnity.Collide.Box box = waterInstance.GetComponent<AGXUnity.Collide.Box>();
 
             if (box == null) {
@@ -63,7 +75,7 @@ public class MeshWaterPosition : MonoBehaviour{
             }
 
             box.HalfExtents = new Vector3(halfWidthX, halfHeightY, halfDepthZ);
-            windAndWaterManager.Water = go;
         }
+        windAndWaterManager.Water = waterParent;
     }
 }

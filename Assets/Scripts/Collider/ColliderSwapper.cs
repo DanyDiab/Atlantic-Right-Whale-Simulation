@@ -31,14 +31,14 @@ public class ColliderSwapper : ScriptComponent{
            agxMesh = go.AddComponent<AGXUnity.Collide.Mesh>();
         }
 
-        agxMesh.Options.Mode = AGXUnity.Collide.CollisionMeshOptions.MeshMode.Convex;
+        agxMesh.Options.Mode = AGXUnity.Collide.CollisionMeshOptions.MeshMode.Trimesh;
 
-        agxMesh.Options.MergeNearbyDistance = 0.001f;
-        agxMesh.Options.MergeNearbyEnabled = true;
+        agxMesh.Options.MergeNearbyDistance = 0.003f;
+        agxMesh.Options.MergeNearbyEnabled = false;
 
         
-        agxMesh.Options.ReductionRatio = .5f;
-        agxMesh.Options.ReductionAggressiveness = 7;
+        agxMesh.Options.ReductionRatio = .2f;
+        agxMesh.Options.ReductionAggressiveness = 7f;
 
         agxMesh.Options.ReductionEnabled = true;
         agxMesh.Material = shapeMaterial;

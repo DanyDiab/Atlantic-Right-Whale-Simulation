@@ -104,37 +104,37 @@ namespace MeshGeneration {
         //     for()
         // }
 
-        void attachAGXMeshCollider(GameObject meshObj){
-            MeshFilter mf = meshObj.GetComponent<MeshFilter>();
-            if(mf == null)
-            {
-                Debug.Log("did not find mesh filter to add AGX mesh");
-                return;
-            }
+    void attachAGXMeshCollider(GameObject meshObj)
+    {
+    MeshFilter mf = meshObj.GetComponent<MeshFilter>(); 
+    if(mf == null){        
+        Debug.Log("did not find mesh filter to add AGX mesh");
+        return;
+    }
 
-            AGXUnity.Collide.Mesh m_mesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>().GetInitialized();
-            m_mesh.AddSourceObject(mf.mesh);
-            m_mesh.Options.Mode = AGXUnity.Collide.CollisionMeshOptions.MeshMode.ConvexDecomposition;
-            native = meshObj.AddComponent<AGXUnity.RigidBody>().GetInitialized();
-            native.Native.setMotionControl(agx.RigidBody.MotionControl.STATIC);
 
-            m_mesh.Options.MergeNearbyEnabled = true;
-            CollisionMeshGenerator generator = new CollisionMeshGenerator();
+    native = meshObj.AddComponent<AGXUnity.RigidBody>();
+    native.MotionControl = agx.RigidBody.MotionControl.STATIC;
 
-            AGXUnity.Collide.Mesh[] meshes = new AGXUnity.Collide.Mesh[1];
-            meshes[0] = m_mesh;
-// 
-            var results = generator.Generate(meshes);
+    CollisionMeshGenerator generator = new CollisionMeshGenerator();
+    AGXUnity.Collide.Mesh[] meshes = new AGXUnity.Collide.Mesh[1];
 
-            foreach ( var result in results ) {
-                result.Mesh.PrecomputedCollisionMeshes = result.CollisionMeshes;
-            }
-            m_mesh.OnPrecomputedCollisionMeshDataDirty();
-            m_mesh.SetRigidBody(native);
+    AGXUnity.Collide.Mesh m_mesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>();
+    m_mesh.AddSourceObject(mf.mesh);
+    m_mesh.Options.Mode = CollisionMeshOptions.MeshMode.Trimesh;
+    m_mesh.Options.MergeNearbyEnabled = true;
 
-            GetSimulation().add(m_mesh.RigidBody.Native, true);
+    meshes[0] = m_mesh;
 
-        }
+    var results = generator.Generate(meshes);
+
+    foreach (var result in results)
+    {
+        result.Mesh.PrecomputedCollisionMeshes = result.CollisionMeshes;
+    }
+
+    }
+
         void SaveMeshPrefab(GameObject meshObj) {
         string directoryPath = Application.dataPath + "/prefabs/";
 

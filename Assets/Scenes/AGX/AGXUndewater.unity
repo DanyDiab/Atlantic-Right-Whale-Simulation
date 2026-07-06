@@ -153,6 +153,37 @@ MonoBehaviour:
     m_reductionRatio: 0.5
     m_reductionAggressiveness: 7
     m_elementResolutionPerAxis: 50
+--- !u!1 &30014788
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 30014789}
+  m_Layer: 0
+  m_Name: WaterChunks
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &30014789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 30014788}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 122517772}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &88111980 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2586951667622863578, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
@@ -347,6 +378,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 122517772}
+  - component: {fileID: 122517773}
   m_Layer: 0
   m_Name: Water
   m_TagString: Untagged
@@ -367,10 +399,28 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1499578625}
   - {fileID: 1706323345}
+  - {fileID: 30014789}
   m_Father: {fileID: 361351551}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &122517773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122517771}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a81c7965249d1ec4d9e077d85142aa9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MeshWaterPosition
+  meshParent: {fileID: 112665079}
+  waterBoxPrefab: {fileID: 4542034292499647994, guid: 396c77b006060024e95d819adfe58b7a, type: 3}
+  settings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
+  windAndWaterManager: {fileID: 1706323344}
+  spawnWater: 1
+  waterParent: {fileID: 30014788}
 --- !u!1 &224414140
 GameObject:
   m_ObjectHideFlags: 0
@@ -483,7 +533,7 @@ MonoBehaviour:
   m_updateRealTimeCorrectionFactor: 0.9
   m_gravity: {x: 0, y: -9.82, z: 0}
   m_timeStep: 0.004999993
-  m_solverSettings: {fileID: 0}
+  m_solverSettings: {fileID: 11400000, guid: 721a350ca544f2c478b40d577f7ca7a9, type: 2}
   m_preIntegratePositions: 0
   m_displayStatistics: 0
   m_statisticsMovingAverage: 50
@@ -1299,6 +1349,7 @@ GameObject:
   m_Component:
   - component: {fileID: 931879002}
   - component: {fileID: 931879003}
+  - component: {fileID: 931879005}
   m_Layer: 0
   m_Name: SeaFloor
   m_TagString: Untagged
@@ -1320,6 +1371,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 112665080}
+  - {fileID: 2123906863}
   m_Father: {fileID: 361351551}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &931879003
@@ -1336,9 +1388,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MeshGeneration.Mesh
   m_serializationVersion: 1
   parent: {fileID: 112665079}
-  meshMaterial: {fileID: 2100000, guid: 8c58a6e5ef3e8054f82c9e58bb2ce835, type: 2}
+  meshMaterial: {fileID: 2100000, guid: 2ad85dfe2430c9944a67aabf28740c2d, type: 2}
   reloadMesh: 0
   processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
+--- !u!114 &931879005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 931879001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c3acf9865b355d4a99c60390cbf3292, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BoulderSpawner
+  boulderPrefab: {fileID: 7699822575351861095, guid: 2472d32cc0a696a42bd7916c7a32a5fc, type: 3}
+  boulderParent: {fileID: 2123906862}
+  meshParent: {fileID: 112665079}
+  minNumClumps: 0
+  maxNumClumps: 20
+  minNumBouldersPerClump: 5
+  maxNumBouldersPerClump: 15
+  clumpBoulderDeviation: 90
+  minScale: 10
+  maxScale: 30
+  scaleDeviation: 3
+  processingSettings: {fileID: 11400000, guid: 33636be64600f5f4287e9b02c8521d90, type: 2}
+  shouldSpawnBoulders: 0
 --- !u!1001 &964075581
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2112,126 +2189,6 @@ MonoBehaviour:
     m_reductionRatio: 0.5
     m_reductionAggressiveness: 7
     m_elementResolutionPerAxis: 50
---- !u!1 &1311994758
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1311994759}
-  - component: {fileID: 1311994763}
-  - component: {fileID: 1311994762}
-  - component: {fileID: 1311994761}
-  - component: {fileID: 1311994760}
-  m_Layer: 0
-  m_Name: AGXUnity.Collide.Box_Visual
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1311994759
-Transform:
-  m_ObjectHideFlags: 8
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311994758}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1000, y: 400, z: 1000}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1499578625}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1311994760
-MonoBehaviour:
-  m_ObjectHideFlags: 2
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311994758}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f51c5940a8ebcfc4997616eb2929ad13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AGXUnity::AGXUnity.Utils.OnSelectionProxy
-  m_serializationVersion: 1
-  m_component: {fileID: 1499578624}
---- !u!114 &1311994761
-MonoBehaviour:
-  m_ObjectHideFlags: 8
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311994758}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a39fce5ca1a43ed488bf0d4d38bbabea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AGXUnity::AGXUnity.Rendering.ShapeVisualBox
-  m_serializationVersion: 1
-  m_shape: {fileID: 1499578624}
---- !u!23 &1311994762
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311994758}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 0
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: -876546973899608171, guid: dd97de70edf8a4141bee758a2efe7ff8, type: 3}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 0
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 0
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &1311994763
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1311994758}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!1 &1345939648 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 93787672293514501, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
@@ -2436,57 +2393,6 @@ MonoBehaviour:
     m_reductionRatio: 0.5
     m_reductionAggressiveness: 7
     m_elementResolutionPerAxis: 50
---- !u!1 &1499578623
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1499578625}
-  - component: {fileID: 1499578624}
-  m_Layer: 0
-  m_Name: WaterBox
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1499578624
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1499578623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a9ab00a2b035f9478e3faf9f46c0b2a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: AGXUnity::AGXUnity.Collide.Box
-  m_serializationVersion: 1
-  m_collisionsEnabled: 1
-  m_isSensor: 0
-  m_enableMassProperties: 1
-  m_material: {fileID: 0}
-  m_halfExtents: {x: 500, y: 200, z: 500}
---- !u!4 &1499578625
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1499578623}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 500, y: -100, z: 500}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1311994759}
-  m_Father: {fileID: 122517772}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1528469430 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 3634313713066839450, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
@@ -2889,7 +2795,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: AGXUnity::AGXUnity.WindAndWaterManager
   m_serializationVersion: 1
-  m_water: {fileID: 1499578623}
+  m_water: {fileID: 0}
   m_waterVelocity: {x: 0, y: 0, z: 0}
   m_windVelocity: {x: 0, y: 0, z: 0}
 --- !u!4 &1706323345
@@ -3001,7 +2907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1928959f5179ef142b4fe489d3c7990e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MovementRB
-  speed: 100000000
+  speed: 200000000
   angularSpeed: 1
   target: {fileID: 680989763}
 --- !u!1 &1733506230
@@ -3029,7 +2935,7 @@ Transform:
   m_GameObject: {fileID: 1733506230}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 5.4559937, y: -18.42866, z: 181.38904}
+  m_LocalPosition: {x: 400, y: -18.42866, z: 400}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3706,6 +3612,37 @@ MonoBehaviour:
     m_reductionRatio: 0.5
     m_reductionAggressiveness: 7
     m_elementResolutionPerAxis: 50
+--- !u!1 &2123906862
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2123906863}
+  m_Layer: 0
+  m_Name: Boulders
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2123906863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2123906862}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 931879002}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2125987326 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 863213685505507540, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
