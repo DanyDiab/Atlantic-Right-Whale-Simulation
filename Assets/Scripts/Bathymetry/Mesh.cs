@@ -177,7 +177,7 @@ namespace MeshGeneration {
 
                 meshFilter.sharedMesh = chunkMesh;
 
-                chunkObject.transform.position = new Vector3(north, 0, west);
+                chunkObject.transform.position = new Vector3(-north, 0, west);
 
                 attachAGXMeshCollider(chunkObject);
             }

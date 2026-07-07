@@ -251,6 +251,25 @@ However cables allow for modeling of torsion and plasticity that wires do not. I
 More can be found here: "https://www.algoryx.se/documentation/complete/agx/tags/latest/doc/UserManual/source/agxcable.html"
 
 
+#### Solver Settings
+
+I have tested numerous different solver settings. The 2 goals that drove the experimentation was
+
+1. Realtime Playback
+2. Stable Simulation
+
+A sub goal of keeping memory usage as minimal as possible was kept in mind as well.
+
+The most important discovery in the solver settings is the setting **Real Time Rendering**.
+
+When set to 1, the solver, when under heavy simulation, sacrifices FPS in a traditional sense, lowering the FPS.
+When set to 0, the solver when under heavy simulation, slows down the simulation, attempting to keep FPS higher.
+
+I have found that setting this parameter to 0 allows us to keep realtime playback. Without it, its very possible to have 1-2 FPS under heavy load.
+
+Another important note is number of threads. I have noiticed that changing this value did not effect performance at all. Unsure if it is a bug, but either way, I kept this on 4, as this is noted as the max in the documentation.  
+
+
 #### HydroDyanamics (Water)
 
 Creation and Management of hydrodynamics has proven to be quite easy. The main things to keep in mind is that the hydrodynamics expects all objects that are water to be udner the same object. As well as that, Density is the driving force for how buoyant or not an object is. This can be found within the shape material. (Less Dense Objects float more)
