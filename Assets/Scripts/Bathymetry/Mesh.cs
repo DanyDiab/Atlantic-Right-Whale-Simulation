@@ -40,6 +40,9 @@ namespace MeshGeneration {
         string byteFileDir;
 
         protected override bool Initialize() {
+            // agxWire.WireController wireController = new agxWire.WireController();
+            // setEnableDynamicWireContactsGlobally(true);
+
             records = new List<DepthDataRecord>();
             fileUtil = new FileUtilities();
             string areaPath = processingSettings.AreaToFilePath();
@@ -48,7 +51,6 @@ namespace MeshGeneration {
             startMeshPipeline();
             
             return base.Initialize();
-
         }
 
         void Update()

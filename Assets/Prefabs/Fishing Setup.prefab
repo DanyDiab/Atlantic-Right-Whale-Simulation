@@ -269,8 +269,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: AGXUnity::AGXUnity.Wire
   m_serializationVersion: 1
-  m_radius: 0.06
-  m_resolutionPerUnitLength: 1.5
+  m_radius: 0.12
+  m_resolutionPerUnitLength: 6
   m_linearVelocityDamping: 0
   m_scaleConstant: 0.35
   m_material: {fileID: 11400000, guid: 4d6c02901dc362c41b86fa34c055c17d, type: 2}

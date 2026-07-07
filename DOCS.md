@@ -1,10 +1,10 @@
 # NARW Simulation Documentation
 
-This markdwon file contains documetation on Dany's work on the NARW summer 26 project. This will include information on both the systems I have engineered, as well as systems that I have used and worked with, such as Algoryx (AGX).
+This markdown file contains documentation on Dany's work on the NARW summer 26 project. This will include information on both the systems I have engineered, as well as systems that I have used and worked with, such as Algoryx (AGX).
 
 Information contained will include design ideas, as well as how to operate the system.
 
-**Last Update: 06/29/26**
+**Last Update: 07/06/26**
 
 ## Document Layout
 
@@ -35,10 +35,10 @@ Each of these 2 Main Components is then subdivided into 2 tasks that the pipelin
    Reading in real data in the form of a geoTIFF, applying some preprocessing, and store the preprocessed data into a binary file for the next step of the pipeline to make use of.
 2. **Runtime** 
    
-   Reading in the Binary File that the previous section, read it in and apply it to the runtime enviornment.
+   Reading in the Binary File that the previous section, read it in and apply it to the runtime environment.
 
 
-The main reason for needing 2 different sections is due to the fact of having expensive operations that can take several minutes. Rather than processing each time, we can preprocess once and cache the result. **NOTE** Runtime operations, like the name implies shouldb e ran in realtime. If any operation in the runtime section is too slow, it should be moved to the preprocess step. 
+The main reason for needing 2 different sections is due to the fact of having expensive operations that can take several minutes. Rather than processing each time, we can preprocess once and cache the result. **NOTE** Runtime operations, like the name implies should be ran in realtime. If any operation in the runtime section is too slow, it should be moved to the preprocess step. 
 
 
 ### Bathymetry Preprocess Step
@@ -51,7 +51,7 @@ The Bathymetry Preprocess step contains 3 steps, those being
    
 2. **Patching:** Real data is messy. Real data is not defined everywhere. This is the key motivation for this section of the pipeline. There are many points in the Bathymetry that are undefined, and if not processed, would break the plausiblity of the environment, as they lead in spikes in the data. How the pipeline handles missing data points is an algorithm called Inverse Distance Weighting (IDW).
     Essentially, we take the nearest X (typically 4 is chosen) known points and take a weighted average of them. We use $1 / dP$, where $dP$  is the distance to the unknown point. 
-    - Note that instead of adding the exact depth at a certain point, the system adds multiple octaves of perlin noise to break up regularity. To ensure that our new interpolated point still goes through our control points (the known points), we mask the noise based on the distance to a known point. If we are within X units of the known point, do not add any noise, enforcing control point crossover, and ensuring a smooth continous surface.
+    - Note that instead of adding the exact depth at a certain point, the system adds multiple octaves of perlin noise to break up regularity. To ensure that our new interpolated point still goes through our control points (the known points), we mask the noise based on the distance to a known point. If we are within X units of the known point, do not add any noise, enforcing control point crossover, and ensuring a smooth continuous surface.
 3. **Writing:** After Reading and Patching, we can then write the processed data into a binary (.bytes) file for runtime usage. The binary file is organized like this:    
    
     | Field Name | Data Type | Size (Bytes) |
@@ -69,7 +69,7 @@ The Bathymetry Preprocess step contains 3 steps, those being
 
 ### Bathymetry Runtime Step
 
-The Bathymetry runtime step involves the construction of a mesh and displaying chunks of data. IT is realtively simple and follows a conventional data process for mesh construction.
+The Bathymetry runtime step involves the construction of a mesh and displaying chunks of data. IT is relatively simple and follows a conventional data process for mesh construction.
 
 This step as mentioned previously will use the data from the process step to display. 
 
@@ -82,7 +82,6 @@ Then for each DepthDataRecord, we first construct a unity mesh. Then we position
 
 This is where things get complicated, as this is where I faced some roadblocks. 
 
-The backscatter pipeline is still underworks and will likely to change later on in the work of this project. 
 
 Generally, the backscatter (BS) pipeline contains 5 steps.
 
@@ -101,7 +100,7 @@ Reading involves reading in the BS data from the CHS dataset and converting to a
 1. GeoTiff file
 2. JSON file
 
-The GeoTiff data contains the raw Backscatter intesity values, however it is missing some key data that is needed for the full picture, such as min and max of the intensity values. This is needed to be passed along to the tiff reader, as it assumes a range of values to clip/enforce values to stay within. 
+The GeoTiff data contains the raw Backscatter intensity values, however it is missing some key data that is needed for the full picture, such as min and max of the intensity values. This is needed to be passed along to the tiff reader, as it assumes a range of values to clip/enforce values to stay within. 
 
 #### Simple Preprocessing
 
@@ -111,20 +110,20 @@ In this master file, we normalize the values from the range defined in the JSON 
 
 #### Cropping 
 
-Before continuing, we should understand the key motivation and purpose of the next two steps. The key motivation for this step, while it is to reduce the compuation time, the key insight is that the Bathymetry data is in Geographical Latitude and Longitude, and the backscatter is in UTM, two differnt coordinate spaces. We need a way to spatially relate these two datasets. They need to be brought into the same coordinate space. This can be done using projections. we should also note that projecting is an **expensive** operation, especially on large datasets. This will be gone into more detail in the next section, **Projection**.
+Before continuing, we should understand the key motivation and purpose of the next two steps. The key motivation for this step, while it is to reduce the computation time, the key insight is that the Bathymetry data is in Geographical Latitude and Longitude, and the backscatter is in UTM, two different coordinate spaces. We need a way to spatially relate these two datasets. They need to be brought into the same coordinate space. This can be done using projections. we should also note that projecting is an **expensive** operation, especially on large datasets. This will be gone into more detail in the next section, **Projection**.
 
 Now armed with information of why we need to project datasets, and that it is computationally expensive, we should then decide which coordinate space we should unify both datasets into. After some initial thoughts and experimentation, it made more sense to normalize the backscatter into geographical latitude and longitude. 
 
 **Why?**
 
-While this may seem counter intuitive, why would I pick to normalize into geographical coordintes rather than use UTM. After all, UTM measures in **METERS**, and lat/long is in degrees. Surely working with meters would be easier than working with degrees, especially since we are using the Unity engine, where 1 unit = 1 meter. This too was my initial thought process. So I commenced converting the Bathymetry data into UTM, and this is where complications and my assumptions from earlier in the project came back around. Earlier in the project when handling the Bathymetry files, I noted that the chunks of bathymetry are 10KM^2 of data, and each file is 10 "arbitrary units" apart. For example, a file would be named 4510N06500W, and the file next to it would be 4510N06510W, note how the files are 10 units W apart. This way I could map the bathymetry data onto a flat surface. Later on, I came to learn that these arbitrary units were degrees of Latitude and Longitude, so my assumption was **warping** the space, especially streching the sapce east, west wise, using a projection called the Equirectangular projection. When converting into UTM, now I was using a projection that is designed to cause the least local warping possible. Hoever instead of the warping the sapce by streaching east west, it would reduce this effect, cauasing chunks to be not evenly sized chunks.  so now each chunk, rather than being arbitraily placed 10KM apart, they were uniquely unevenly spaced, respecting the curvature of the Earth. Some chunks were 7.8KM apart, others 7.9. At this point, I decided that converting to UTM was **feasible**, but it would be like running into a brick wall. If I wanted to continue down this path, I would likely need to **redesign** my entire system from the ground up, to account for uneven chunk sizes. After giving that some thought as it would increase accuracy of the enviornment, it proved to be complicated. Hence, the decision was taken, I will continue to make my assumption of .1 Degree of Lat/Long = 10KM, and I will convert backscatter into Lat/Long.
+While this may seem counter intuitive, why would I pick to normalize into geographical coordinates rather than use UTM. After all, UTM measures in **METERS**, and lat/long is in degrees. Surely working with meters would be easier than working with degrees, especially since we are using the Unity engine, where 1 unit = 1 meter. This too was my initial thought process. So I commenced converting the Bathymetry data into UTM, and this is where complications and my assumptions from earlier in the project came back around. Earlier in the project when handling the Bathymetry files, I noted that the chunks of bathymetry are 10KM^2 of data, and each file is 10 "arbitrary units" apart. For example, a file would be named 4510N06500W, and the file next to it would be 4510N06510W, note how the files are 10 units W apart. This way I could map the bathymetry data onto a flat surface. Later on, I came to learn that these arbitrary units were degrees of Latitude and Longitude, so my assumption was **warping** the space, especially stretching the space east, west wise, using a projection called the Equirectangular projection. When converting into UTM, now I was using a projection that is designed to cause the least local warping possible. However instead of the warping the space by stretching east west, it would reduce this effect, causing chunks to be not evenly sized chunks.  so now each chunk, rather than being arbitrarily placed 10KM apart, they were uniquely unevenly spaced, respecting the curvature of the Earth. Some chunks were 7.8KM apart, others 7.9. At this point, I decided that converting to UTM was **feasible**, but it would be like running into a brick wall. If I wanted to continue down this path, I would likely need to **redesign** my entire system from the ground up, to account for uneven chunk sizes. After giving that some thought as it would increase accuracy of the environment, it proved to be complicated. Hence, the decision was taken, I will continue to make my assumption of .1 Degree of Lat/Long = 10KM, and I will convert backscatter into Lat/Long.
 
 **Back to the pipeline**
 
-After the 0-1 Normalization is complete, we begin processing and chunking the backscatter data. As mentioned above, the Bay of Funday BS data from the CHS dataset is one massive dataset. To reduce the computation time, one realization and key finding needed is that instead of preproccesing the entire dataset, only preprocess the parts that are needed, so what is needed, what parts of this entire file do I need? 
+After the 0-1 Normalization is complete, we begin processing and chunking the backscatter data. As mentioned above, the Bay of Fundy BS data from the CHS dataset is one massive dataset. To reduce the computation time, one realization and key finding needed is that instead of preprocessing the entire dataset, only preprocess the parts that are needed, so what is needed, what parts of this entire file do I need? 
 
 I need only the parts that I will be made into mesh chunks. So, this first step of chunking, is grabbing the bathymetry data and projecting them into UTM.
-Then from here, I am able to determine where in the massive master BS array each chunk would be using the resoluiton of the data (spatial distance between points). 
+Then from here, I am able to determine where in the massive master BS array each chunk would be using the resolution of the data (spatial distance between points). 
 
 I then only save these cropped BS chunks. Which could then be projected. 
 
@@ -132,7 +131,7 @@ Overall instead of projecting roughly ~30 x 30 Chunks of data, we only process t
 
 #### Projection
 
-This is the final preprocessing step for the Backscatter pipeline (excluduing the writing to a binary file, as that is trivial).
+This is the final preprocessing step for the Backscatter pipeline (excluding the writing to a binary file, as that is trivial).
 
 Projecting from one coordinate space into another is a complex and expensive operation. 
 
@@ -140,7 +139,7 @@ For our purposes, we need to handle **UTM** <=> **Geographical Lat/Long**. As we
 
 Projection comes with 2 distinct steps. A forward and backward pass. The reason for having 2 distinct steps is to ensure points defined uniformly across a grid, effectivly combating projection warping on individual points. For example, say you have a list of data points in lat/long which are spaced 10 meters apart (If this doesn't make sense, read the why section in the Cropping step). when Projecting, we would like to keep points to be evenly spaced apart. However, when projecting, points do not end up exactly in the sapce spot, this is due to warping. We first do a **forward pass**, where we convert all of our known points into the new coordinate space, ignoring the warping effect. Then afterwards, we do a **backward pass**. In this backward pass, instead of looping over each point that was just projected, we loop over each **TARGET** point. The target points are the uniform spaced points that we define based on the resolution. foreach target point, we interpolate the nearest X neighbors together, essentially taking an average for our target point. It is worth noting, that we upsample in the backward pass, based on the target resolution.
 
-We then have our chunked, upsampled, projected backscatter data (what a mouthfull) that is ready to be writting into a binary file. 
+We then have our chunked, upsampled, projected backscatter data (what a mouthful) that is ready to be writing into a binary file. 
 
 
 #### Writing To Binary
@@ -158,7 +157,7 @@ The process of writing to a binary file is trivial. It follows the following str
 
 ### Backscatter Runtime Step
 
-The Backscatter Runtime step is currently being worked onand iterated on based on feedback from Jay, one of the oceanographer on the team. 
+The Backscatter Runtime step is currently being worked on and iterated on based on feedback from Jay, one of the oceanographer on the team. 
 
 This upcoming iteration, while sacrificing some bathymetry realism, we can achieve greater plausibility. This can be done by mapping a flat mud texture to the exisitng bathymetry mesh. 
 
@@ -243,7 +242,7 @@ anything with AGXUnity, interacts with unity side things, in the case of mesh, A
 
 Four our purposes of creation of fishing lines, either wires or cables are plausible choices. After  some intial testing of differences between the two, they apepar to work very similiarly. I noticed some performance gains in using wires rather than cables.
 
-The documentatzion also states that it is possible to cut and merge different wires during runtime, which could be help drive realism in the simulation, as fishing gear may break under heavy tension.
+The documentation also states that it is possible to cut and merge different wires during runtime, which could be help drive realism in the simulation, as fishing gear may break under heavy tension.
 
 The documnetation also states that cables have a fixed resoultion vs wires have dynamic resolution. In this case resolution is referring to how many segmnents are in the rope. Having dyanmic resolution allows for points that could allow for entanglement, where cables might struggle in a similar situation. 
 
@@ -254,17 +253,16 @@ More can be found here: "https://www.algoryx.se/documentation/complete/agx/tags/
 
 #### HydroDyanamics (Water)
 
-Creation and Management of hydrodynamics has proven to be quite easy. The main things to keep in mind is that the hydrodynamics expects all objects that are water to be udner the same object. As well as that, Density is the driving force for how buoytant or not an object is. This can be found within the shape material. (Less Dense Objects float more)
+Creation and Management of hydrodynamics has proven to be quite easy. The main things to keep in mind is that the hydrodynamics expects all objects that are water to be udner the same object. As well as that, Density is the driving force for how buoyant or not an object is. This can be found within the shape material. (Less Dense Objects float more)
 
 #### Current Development Struggles
 
 As the above has mentioned, working with AGX has been quite tricky. The documentation on the Unity side of the system is sparse. And while looking through the source code, we have to dig through source that has multiple defintions (for example, multiple meshs), it is easy to find functions that sound like they would work, but after giving them a try, it does not work. 
 
-As well as that, due to the fact of a section of the code being decompiled, it is harder to read nad make out the purpose, and often times is hard to call certain funcitons due to parameters that are unclear. 
+As well as that, due to the fact of a section of the code being decompiled, it is harder to read and make out the purpose, and often times is hard to call certain functions due to parameters that are unclear. 
 
-Moving on to the simulation itself, AGX is memory hungry. Testing will need to be done on a machine with less memory, as my development has recently been exclusivly on the simulation computer with 64GB of Ram.
+I have found that AGX struggles heavily with collisions with planes. Our mesh collider for the whale uses a trimesh (triangle mesh). When interacting with many wires, often the wires will clip through the model. The solver will then overcompensate with large forces, shooting the whale off. Often in these cases, performance of the simulation severely degrades, in terms of FPS and Memory. These situations MUST be avoided at all costs. As when this happens it is possible for agx to use over 30GBs of RAM, and to drop the fps from over 60 to less than 1, and in some cases crash. 
 
-I have found that often, with multiple contact points, the simulation performance degrades, or even becomes unstable. In these cases, the memory usage jumps, in the extreme cases up to ~30GB. Some recent insight into this issue reveals this performance degredation only happens when a wire gets caught between multiple colliders. Increasing the number of iterations (doing more computation) allows for greater stability, while sacrficing some performance. It is also noteworthy to mention that even while incrasing this, the simulation still has become unstable and has crashed on numerous occasions. 
 
 
 
