@@ -51,7 +51,7 @@ MonoBehaviour:
   m_isSensor: 0
   m_enableMassProperties: 1
   m_material: {fileID: 0}
-  m_radius: 0.1
+  m_radius: 0.5
 --- !u!114 &3249525575325713223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -69,11 +69,11 @@ MonoBehaviour:
     <RigidBody>k__BackingField: {fileID: 3249525575325713223}
     m_mass:
       m_defaultToggle: 1
-      m_defaultValue: 523.59875
+      m_defaultValue: 1
       m_userValue: 1
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 52.35988, y: 52.35988, z: 52.35988}
+      m_defaultValue: {x: 1, y: 1, z: 1}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
@@ -121,7 +121,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.2, y: 0.2, z: 0.2}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 278150521878486234}

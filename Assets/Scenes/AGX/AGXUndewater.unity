@@ -1001,7 +1001,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RopePositioning
   ropeParent: {fileID: 1733506230}
   prefab: {fileID: 6811724478845216287, guid: 725e8885d2246b14d9c62599347ee64e, type: 3}
-  spawnDimension: {x: 3, y: 3}
+  spawnDimension: {x: 1, y: 1}
   ropeSpacing: 10
   spawnRopes: 0
 --- !u!4 &104103662
@@ -8085,7 +8085,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2949686268973457154, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2500
+      value: 6500
       objectReference: {fileID: 0}
     - target: {fileID: 2949686268973457154, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -8301,7 +8301,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9210498052863354832, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11576,15 +11576,15 @@ MonoBehaviour:
       m_userValue: 1
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 190218.3, y: 194868.42, z: 22806.703}
+      m_defaultValue: {x: 190219.33, y: 194869.45, z: 22806.703}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 127.03366, y: 406.76318, z: 5944.4355}
+      m_defaultValue: {x: 127.03366, y: 406.69537, z: 5944.5913}
       m_userValue: {x: 1, y: 1, z: 1}
     m_centerOfMassOffset:
       m_defaultToggle: 0
-      m_defaultValue: {x: 0.05135204, y: 0.32634905, z: 3.0604174}
+      m_defaultValue: {x: 0.05135204, y: 0.32634905, z: 3.060425}
       m_userValue: {x: 0, y: -0.5, z: 2}
     m_massCoefficients: {x: 0, y: 0, z: 0}
     m_inertiaCoefficients: {x: 0, y: 0, z: 0}
@@ -14003,19 +14003,19 @@ MonoBehaviour:
     <RigidBody>k__BackingField: {fileID: 1726221549}
     m_mass:
       m_defaultToggle: 1
-      m_defaultValue: 37243.57
+      m_defaultValue: 1
       m_userValue: 1
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 338157.12, y: 342800.47, z: 33674.664}
+      m_defaultValue: {x: 1, y: 1, z: 1}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 217.34964, y: -479.0863, z: 12200.742}
+      m_defaultValue: {x: 0, y: 0, z: 0}
       m_userValue: {x: 1, y: 1, z: 1}
     m_centerOfMassOffset:
       m_defaultToggle: 0
-      m_defaultValue: {x: -0.005239814, y: 0.37559095, z: 1.8920003}
+      m_defaultValue: {x: -0, y: 0, z: 0}
       m_userValue: {x: 0, y: -0.5, z: 2}
     m_massCoefficients: {x: 0, y: 0, z: 0}
     m_inertiaCoefficients: {x: 0, y: 0, z: 0}
@@ -14219,7 +14219,7 @@ Transform:
   m_GameObject: {fileID: 1733506230}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 400, y: -18.42866, z: 2500}
+  m_LocalPosition: {x: 400, y: -18.42866, z: 6500}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
