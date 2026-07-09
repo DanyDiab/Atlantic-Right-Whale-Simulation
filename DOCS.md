@@ -205,6 +205,58 @@ The idea of using this type of noise is to introduce the ridges and roughness th
 I plan on having a target color. Say around a grey. Then for each boulder, we should deviate slightly from this defined color. We can pick a random unit vector in 3D space. Then we can allow this vector to be scaled by a certain small value. From there, we can add this small deviation into the color, producing a color that is plausible, but slightly differnt boulder to boulder.
 
 
+### Miscealous
+
+In this section, I will conver all miscelanous files, scripts, or other bits of information that would be useful to understand the systems I have built. 
+
+This section will be covered in the following manner:
+
+Each file/script/component will have its own header which will be titled with its path relative to the scripts directory (in the Assets directory). For example ```Backscatter/BackscatterReader.cs```
+
+
+#### Scene Util Direcotry
+
+In the scene Util Directory, as the name implies, there are utilities that handle and work with Unity Scenes. This includes the following files:
+
+* ```MeshWaterPosition.cs```
+* ```PrefabGridInstaniate.cs```
+* ```RopeActivator.cs```
+* ```SceneSwitcher.cs```
+* ```TrawlLineSpawner.cs```
+
+#### MeshWaterPosition.cs
+This file positions water boxes, which is a prefab, according to the chunks of data that is being renderered. It registers these water chunks with the AGX WindAndWaterManager. Note, that the water chunks can be reloaded when setting the boolean variable ```spawnWater``` to ```true```. 
+
+
+#### PrefabGridInstaniate.cs
+
+This file is used for creating many prefabs in a grid. So say for example, if you would like to spawn in 10 ropes in a grid with equal spacing, this file would be a good fit. 
+
+Note that many of the variables and function names in this class are named around ropes. This is due to when first creating the class, only forseeing its use case for spawning ropes, however it has proven useful on numerous occasions. 
+
+
+#### RopeActivator.cs
+
+
+This file is simply an object toggler. If you press P, it will activate and deactive and a chosen object. 
+
+This file like the previous is named around ropes as that is what I had forseen it being used for, however it is likely this could be useful for other purposes.
+
+
+#### SceneSwitcher.cs
+
+This file can be used for switching between a list of scenes. This was mainly used for the demo. 
+
+Note that, the list of scenes is of the type ```string```. Where the string should be the NAME of the scene itself.
+
+
+Also note that the scenes must be registered with the unity BUILD. This can be achieved in the following manner:
+
+file >> Build Profiles >> Open Scene List >> Add Open Scenes. 
+
+For this to work, the scenes must be open in the hierarchy. 
+
+
 ## Systems I have worked with
 
 This section will act as a reference for all the knowledge I have on different systems, how they operate, how to use them, and other importnat infomration relating to the system.
