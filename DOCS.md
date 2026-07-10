@@ -151,58 +151,59 @@ The process of writing to a binary file is trivial. It follows the following str
 | Width | `float` | 4 |
 | Height | `float` | 4 |
 | dataCount | `int` | 4 |
-| dataPoints | `List<float>` | 4 * dataCount |
-
-
-
-### Backscatter Runtime Step
-
-The Backscatter Runtime step is currently being worked on and iterated on based on feedback from Jay, one of the oceanographer on the team. 
-
-This upcoming iteration, while sacrificing some bathymetry realism, we can achieve greater plausibility. This can be done by mapping a flat mud texture to the exisitng bathymetry mesh. 
-
-Then we can place boulders using a rock texture scattered across a given chunk that we would like to render.
+| dataPoints | `List<float
+The backscatter runtime step includes the mapping of a flat mud texture to the bathymetry driven mesh, then the inclusion of procededurally generated boulders. While this approach sacrifices some bathymetry realism, we can achieve greater plausibility. 
 
 Generally the process follows these steps:
 
 1. Read in Processed Backscatter
-2. Read in Processed Bathymetry
+2. Read in current meshes data
 3. Sample some Pseudorandom numbers to lerp between some defined properties.
 
-
-
-Step 1 and 2 are relatively trivial as it consits of reading in the processed work that we have completed before. The layout of these binary files can be found in sections above.
+Step 1 and 2 are relatively trivial as it consits of reading in the processed work that we have completed before. The layout of backscatter binary file can be found in the section above.
 
 
 #### Pseudorandom Properties
 
-This section is not too difficult/complex to understand, however it is important to have a record of. Note that it is likely that this section would change. If the feedback recieved on  this iteration indicates that change is needed.
+This section is not too difficult/complex to understand, however it is important to have a record of. 
+
+Moving on to the system.
+
+First, we define a min and max scale, and min and max number of boulders.
+
+After having read in the backscatter, we take the average of the entire chunk's bathymetry. The reason we do this is for a few reasons, but the main being for simplicity sake. As I had observed within the data, the Backscatter values do not tend to deviate much from the average, and so taking an average of the entire chunk would not destroy much detail, while simplifying further usage. 
+
+We then use this average to lerp between the bottom number of clumps and the top. The idea is that higher backscatter values means rouger terrain, which can equate to more boulders, or more clumps of boulders.
+
+To destory the self similiarity bgetween boulders, we sample some pseduo random numbers that drive the boulder positioning and scale. 
+
+We first decide where to place a clump of boulders. Then after which, we decide how many boulders should be in this clump, this is completly random, however we pick between a min and max. Then for each boulder, we sample a random number for the scale, and for the deviation from the clump spawn point. These numbers are all exposed to the user to allow for greater control of the system. 
+
+We should note that for position, we use the chunks bounds to determine where it should be placed, to ensure the boulders stay within the chunks space. This enforcemnet of position is done after having decided where a boulder should be placed with some deviation. 
+
+**Procederaul Boulders** 
+
+How are the boulders procederally generated? 
+
+They are created in a shadergraph, Unity's visual shader creation tool. I find these tools quite easy to work with, and having a visual output as you move through the creation is quite handy.
+
+The goal is destroy the self similiarity between different rocks. 
+
+The generation consists of 2 steps:
+* Vertex Displacement
+* Color Picking
 
 
-Regardless, moving on to the system.
+**Vertex Displacement**
 
-First, we define a min and max scale, and min and max number of boulders. 
+I use perlin ridge noise. More can be found here: https://thebookofshaders.com/13/ (note, this website is very cool!, and I would recommend checking it out!)
 
-After having read in the backscatter and bathymetry, we take the average of the entire chunk's bathymetry. The reason we do this is for a few reasons, but the main being for simplicity sake. As I had observed, the Backscatter values do not tend to deviate much from the average, and so taking an average of the entire chunk would not destory too much detail, while simplifying further usage. 
-
-We then use this average to lerp between the bottom number of boulders and the top. The idea is that higher backscatter values means rouger terrain, which can equate to more boulders.
-
-To destory the self similiarity bgetween boulders, we sample a pseduo random number ot lerp between a defined min and max scale, as well as position. 
-
-However for position, we use the chunks bounds to determine where it should be placed, to ensure the boulders stay within the chunks space. 
+The idea of using this type of noise is to introduce the ridges and roughness that boulders typically have due to erosion. We displace the vertices using this. 
 
 
-#### Texture
+**Color Picking**
 
-Once again this section is possible to have changes, and none of it is implemented yet.
-
-Depsite this is how I plan on implementing and creating textures for the boulders. The goal is destory the self similiarity between differnt rocks. 
-
-I plan on using perlin ridge noise along with multiple octaves, using fBm. More can be found here: https://thebookofshaders.com/13/ (note, this website is very cool!, wnd I would recommend checking it out!)
-
-The idea of using this type of noise is to introduce the ridges and roughness that boulders typically have due to erosion. 
-
-I plan on having a target color. Say around a grey. Then for each boulder, we should deviate slightly from this defined color. We can pick a random unit vector in 3D space. Then we can allow this vector to be scaled by a certain small value. From there, we can add this small deviation into the color, producing a color that is plausible, but slightly differnt boulder to boulder.
+We define a target color. Say around a grey. Then for each boulder, we should deviate slightly from this defined color. We can pick a (Pseudo)random unit vector in 3D space. Then we can allow this vector to be scaled by a certain small value. From there, we can add this small deviation into the color, producing a color that is plausible, but slightly differnt boulder to boulder.
 
 
 ### Miscealous
@@ -212,7 +213,6 @@ In this section, I will conver all miscelanous files, scripts, or other bits of 
 This section will be covered in the following manner:
 
 Each file/script/component will have its own header which will be titled with its path relative to the scripts directory (in the Assets directory). For example ```Backscatter/BackscatterReader.cs```
-
 
 #### Scene Util Direcotry
 
@@ -224,27 +224,27 @@ In the scene Util Directory, as the name implies, there are utilities that handl
 * ```SceneSwitcher.cs```
 * ```TrawlLineSpawner.cs```
 
-#### MeshWaterPosition.cs
+**MeshWaterPosition.cs**
+<br>
 This file positions water boxes, which is a prefab, according to the chunks of data that is being renderered. It registers these water chunks with the AGX WindAndWaterManager. Note, that the water chunks can be reloaded when setting the boolean variable ```spawnWater``` to ```true```. 
 
 
-#### PrefabGridInstaniate.cs
-
+**PrefabGridInstaniate.cs**
+<br>
 This file is used for creating many prefabs in a grid. So say for example, if you would like to spawn in 10 ropes in a grid with equal spacing, this file would be a good fit. 
 
 Note that many of the variables and function names in this class are named around ropes. This is due to when first creating the class, only forseeing its use case for spawning ropes, however it has proven useful on numerous occasions. 
 
 
-#### RopeActivator.cs
-
-
+**RopeActivator.cs**
+<br>
 This file is simply an object toggler. If you press P, it will activate and deactive and a chosen object. 
 
 This file like the previous is named around ropes as that is what I had forseen it being used for, however it is likely this could be useful for other purposes.
 
 
-#### SceneSwitcher.cs
-
+**SceneSwitcher.cs**
+<br>
 This file can be used for switching between a list of scenes. This was mainly used for the demo. 
 
 Note that, the list of scenes is of the type ```string```. Where the string should be the NAME of the scene itself.
@@ -256,6 +256,27 @@ file >> Build Profiles >> Open Scene List >> Add Open Scenes.
 
 For this to work, the scenes must be open in the hierarchy. 
 
+
+**TrawlLineSpawner.cs**
+<br>
+This file is used for the spawning of trawl lines, like the name sugests. This handles the dyanamic creation of AGX ropes in between the buoy, and traps.
+
+We are able to control the minimum and maximum numebr of trpas spawned per trawl, as well as, the spacing, and depth (or y position) of the trawl line. 
+
+The script randomly picks a value between the min and max to spawn for the number of traps on a trawl line. 
+
+This script will eventually be expanded in to spawn numerous trawl lines across a certain given chunk(s). 
+
+#### Noise.cs
+
+the noise class allows for the inclusion/addition of noise into either depth data, or into other use cases. 
+
+In the case of adding it to depth data (```addNoiseToDepth()```), the noise class will also mask/not add noise to points that are too close to control points. 
+
+The control points in this case are the points that are defined in our height map. Therefore, this function must be ran after KNN, or after some kind of distance search. 
+
+Alternatively, fBm coupled with perlin noise can be called, using 
+```fBmNoise()```
 
 ## Systems I have worked with
 
@@ -333,7 +354,6 @@ As the above has mentioned, working with AGX has been quite tricky. The document
 As well as that, due to the fact of a section of the code being decompiled, it is harder to read and make out the purpose, and often times is hard to call certain functions due to parameters that are unclear. 
 
 I have found that AGX struggles heavily with collisions with planes. Our mesh collider for the whale uses a trimesh (triangle mesh). When interacting with many wires, often the wires will clip through the model. The solver will then overcompensate with large forces, shooting the whale off. Often in these cases, performance of the simulation severely degrades, in terms of FPS and Memory. These situations MUST be avoided at all costs. As when this happens it is possible for agx to use over 30GBs of RAM, and to drop the fps from over 60 to less than 1, and in some cases crash. 
-
 
 
 
