@@ -81,6 +81,7 @@ MonoBehaviour:
   lobsterTrap: {fileID: 1356546218376360735, guid: 2aa2e8ea51b44a74b856a6e5381ff052, type: 3}
   buoy: {fileID: 4345060032287545016}
   wireMat: {fileID: -876546973899608171, guid: 0ce2014a67ddf2143bf8022ca7f3767c, type: 3}
+  wireShapeMat: {fileID: 11400000, guid: 4d6c02901dc362c41b86fa34c055c17d, type: 2}
   spacingDelta: 100
   depth: 100
 --- !u!1001 &8077675295806794736
@@ -93,39 +94,27 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 133075433714662398, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: <MassProperties>k__BackingField.m_mass.m_defaultValue
-      value: 6018.6626
+      value: 14638.98
       objectReference: {fileID: 0}
     - target: {fileID: 133075433714662398, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: <MassProperties>k__BackingField.m_inertiaDiagonal.m_defaultValue.x
-      value: 10023.407
+      value: 21895.785
       objectReference: {fileID: 0}
     - target: {fileID: 133075433714662398, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: <MassProperties>k__BackingField.m_inertiaDiagonal.m_defaultValue.y
-      value: 2941.796
+      value: 10130.239
       objectReference: {fileID: 0}
     - target: {fileID: 133075433714662398, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: <MassProperties>k__BackingField.m_inertiaDiagonal.m_defaultValue.z
-      value: 10023.407
+      value: 21895.785
       objectReference: {fileID: 0}
     - target: {fileID: 133075433714662398, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: <MassProperties>k__BackingField.m_centerOfMassOffset.m_defaultValue.y
-      value: -1.4608339
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1499691146711412478, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: m_lift
       value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5124739424622241778, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 7.65
-      objectReference: {fileID: 0}
-    - target: {fileID: 5124739424622241778, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 161.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5124739424622241778, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -91.2
       objectReference: {fileID: 0}
     - target: {fileID: 5124739424622241778, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
       propertyPath: m_LocalRotation.w

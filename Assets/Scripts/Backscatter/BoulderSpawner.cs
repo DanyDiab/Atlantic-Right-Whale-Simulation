@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using AGXUnity;
+using AGXUnity.IO.OpenPLX;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class BoulderSpawner : MonoBehaviour
+public class BoulderSpawner : ScriptComponent
 {
     
     [SerializeField] GameObject boulderPrefab;
@@ -38,20 +41,24 @@ public class BoulderSpawner : MonoBehaviour
     FileUtilities fileUtil;
     [SerializeField] bool shouldSpawnBoulders;
 
-    void Start(){
+    protected override bool Initialize() {
+
         activeBoulders = new List<GameObject>();
         fileUtil = new FileUtilities();
-        shouldSpawnBoulders = true;
-    }
+        // shouldSpawnBoulders = true;
 
-    void Update(){
-        if (!shouldSpawnBoulders) return;
-
-        clearBoulders();
         ReadBackscatterAndSpawnBoulders();
-
-        shouldSpawnBoulders = false;
+        return base.Initialize();
     }
+
+    // void Update(){
+    //     if (!shouldSpawnBoulders) return;
+
+    //     clearBoulders();
+
+
+    //     shouldSpawnBoulders = false;
+    // }
 
 
     public void ReadBackscatterAndSpawnBoulders() {
@@ -122,6 +129,45 @@ public class BoulderSpawner : MonoBehaviour
         }
     }
 
+
+// returns created object (if created, null otherwise)
+    GameObject spawnBoulder(int clumpX, int clumpY, Vector3[] vertices, int width, MeshFilter meshFilter){
+        
+        float randDeviationXT = Random.Range(0f, 1f);
+        float randDeviationYT = Random.Range(0f, 1f);
+
+        int deviationX = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationXT));
+        int deviationY = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationYT));
+
+        int chosenVertexX = Mathf.Clamp(clumpX + deviationX, 0, vertices.Length - 1);
+        int chosenVertexY = Mathf.Clamp(clumpY + deviationY, 0, vertices.Length - 1);
+
+
+        int index = (chosenVertexY * width) + chosenVertexX;
+        
+        if (index < 0 || index >= vertices.Length) {
+            return null;
+        }
+        
+        Vector3 localPos = vertices[index];
+
+        Vector3 worldPos = meshFilter.transform.TransformPoint(localPos);
+
+        float randScale = Random.Range(0f, 1f);
+
+        float chosenScale = Mathf.Lerp(minScale, maxScale, randScale);
+
+        Vector3 randScaleDeviationDir = Random.onUnitSphere;
+
+        Vector3 scaleVec = (randScaleDeviationDir * scaleDeviation) + new Vector3(chosenScale, chosenScale, chosenScale);
+
+        GameObject obj = Instantiate(boulderPrefab, worldPos, Quaternion.identity, boulderParent.transform);
+        obj.transform.localScale = scaleVec;
+
+
+        return obj;
+    }
+
     public void spawnBoulders(Vector2 chunkMinBounds, Vector2 chunkMaxBounds, float chunkBSAverage, MeshFilter meshFilter) {
         Mesh mesh = meshFilter.mesh;
         Vector3[] vertices = mesh.vertices;
@@ -146,39 +192,25 @@ public class BoulderSpawner : MonoBehaviour
             int clumpY = Mathf.RoundToInt(randZ * (height - 1));
 
             for(int j = 0; j < numBouldersToSpawn; j++){    
+                GameObject newBoulder = spawnBoulder(clumpX,clumpY,vertices,width,meshFilter);
+                if(!newBoulder) continue;
 
-                float randDeviationXT = Random.Range(0f, 1f);
-                float randDeviationYT = Random.Range(0f, 1f);
+                AGXUnity.RigidBody rb = newBoulder.AddComponent<AGXUnity.RigidBody>();
+                rb.MotionControl = agx.RigidBody.MotionControl.STATIC;
 
-                int deviationX = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationXT));
-                int deviationY = Mathf.RoundToInt(Mathf.Lerp(-clumpBoulderDeviation / 2,clumpBoulderDeviation / 2, randDeviationYT));
-
-                int chosenVertexX = Mathf.Clamp(clumpX + deviationX, 0, vertices.Length - 1);
-                int chosenVertexY = Mathf.Clamp(clumpY + deviationY, 0, vertices.Length - 1);
+                AGXUnity.Collide.Sphere sphereCollider = new AGXUnity.Collide.Sphere();
 
 
-                int index = (chosenVertexY * width) + chosenVertexX;
-                
-                if (index < 0 || index >= vertices.Length) {
-                    continue;
-                }
-                
-                Vector3 localPos = vertices[index];
+                Vector3 scale = newBoulder.transform.localScale;
+                // take the max of x y or z
+                float colliderDiameter = Mathf.Max(Mathf.Max(scale.x,scale.y), scale.z);
+                sphereCollider.Radius = colliderDiameter / 2.0f;
 
-                Vector3 worldPos = meshFilter.transform.TransformPoint(localPos);
+                rb.Native.add(sphereCollider.NativeGeometry);
 
-                float randScale = Random.Range(0f, 1f);
+                // add to agx native tracking system
+                activeBoulders.Add(newBoulder);
 
-                float chosenScale = Mathf.Lerp(minScale, maxScale, randScale);
-
-                Vector3 randScaleDeviationDir = Random.onUnitSphere;
-
-                Vector3 scaleVec = (randScaleDeviationDir * scaleDeviation) + new Vector3(chosenScale, chosenScale, chosenScale);
-
-                GameObject obj = Instantiate(boulderPrefab, worldPos, Quaternion.identity, boulderParent.transform);
-                obj.transform.localScale = scaleVec;
-
-                activeBoulders.Add(obj);
             }
         }
     }
