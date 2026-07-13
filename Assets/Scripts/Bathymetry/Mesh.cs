@@ -106,34 +106,45 @@ namespace MeshGeneration {
         //     for()
         // }
 
-    void attachAGXMeshCollider(GameObject meshObj)
-    {
-    MeshFilter mf = meshObj.GetComponent<MeshFilter>(); 
-    if(mf == null){        
-        Debug.Log("did not find mesh filter to add AGX mesh");
-        return;
-    }
+    void attachAGXMeshCollider(GameObject meshObj){
+
+        System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
+        stopwatch.Start();
+        MeshFilter mf = meshObj.GetComponent<MeshFilter>(); 
+        if(mf == null){        
+            Debug.Log("did not find mesh filter to add AGX mesh");
+            return;
+        }
 
 
-    native = meshObj.AddComponent<AGXUnity.RigidBody>();
-    native.MotionControl = agx.RigidBody.MotionControl.STATIC;
+        native = meshObj.AddComponent<AGXUnity.RigidBody>();
+        native.MotionControl = agx.RigidBody.MotionControl.STATIC;
 
-    CollisionMeshGenerator generator = new CollisionMeshGenerator();
-    AGXUnity.Collide.Mesh[] meshes = new AGXUnity.Collide.Mesh[1];
+        CollisionMeshGenerator generator = new CollisionMeshGenerator();
+        AGXUnity.Collide.Mesh[] meshes = new AGXUnity.Collide.Mesh[1];
 
-    AGXUnity.Collide.Mesh m_mesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>();
-    m_mesh.AddSourceObject(mf.mesh);
-    m_mesh.Options.Mode = CollisionMeshOptions.MeshMode.Trimesh;
-    m_mesh.Options.MergeNearbyEnabled = true;
+        AGXUnity.Collide.Mesh m_mesh = meshObj.AddComponent<AGXUnity.Collide.Mesh>();
+        m_mesh.AddSourceObject(mf.mesh);
+        m_mesh.Options.Mode = CollisionMeshOptions.MeshMode.Trimesh;
 
-    meshes[0] = m_mesh;
+        m_mesh.Options.MergeNearbyEnabled = true;
+        m_mesh.Options.MergeNearbyDistance = 1f;
 
-    var results = generator.Generate(meshes);
+        m_mesh.Options.ReductionEnabled = true;
+        m_mesh.Options.ReductionAggressiveness = 20;
+        m_mesh.Options.ReductionRatio = .01f;
 
-    foreach (var result in results)
-    {
-        result.Mesh.PrecomputedCollisionMeshes = result.CollisionMeshes;
-    }
+        meshes[0] = m_mesh;
+
+        var results = generator.Generate(meshes);
+
+        foreach (var result in results)
+        {
+            result.Mesh.PrecomputedCollisionMeshes = result.CollisionMeshes;
+        }
+        stopwatch.Stop();
+
+        Debug.LogFormat("Attaching agx collider took {0} ms", stopwatch.ElapsedMilliseconds);
 
     }
 
@@ -156,14 +167,34 @@ namespace MeshGeneration {
         AssetDatabase.Refresh();
     }
 
+        Vector2 GetMinChunkPosition()
+        {
+            Vector2 runTimeMin = new Vector2(float.MaxValue, float.MaxValue);
+            foreach(DepthDataRecord record in records)
+            {
+                Vector2 chunkPos = record.ChunkPosition;
+                if(chunkPos.x < runTimeMin.x)
+                {
+                    runTimeMin.x = chunkPos.x;
+                }
+                if(chunkPos.y < runTimeMin.y)
+                {
+                    runTimeMin.y = chunkPos.y;
+                }
+            }
+
+            return runTimeMin;
+        }
         void generateAllMeshes() {
             float chunkSize = processingSettings.chunkSize;
+
+            Vector2 minPos = GetMinChunkPosition();
             foreach (DepthDataRecord record in records) {
 
                 Vector2 chunkPos = record.ChunkPosition;
 
-                float west = Mathf.RoundToInt(chunkPos.x) * chunkSize;
-                float north = Mathf.RoundToInt(chunkPos.y) * chunkSize;
+                float west = Mathf.RoundToInt(chunkPos.x - minPos.x) * chunkSize;
+                float north = Mathf.RoundToInt(chunkPos.y - minPos.y) * chunkSize;
 
                 UnityMesh chunkMesh = generateMeshData(record);
                 GameObject chunkObject = new GameObject("TerrainChunk_W" + west + "_N" + north);
