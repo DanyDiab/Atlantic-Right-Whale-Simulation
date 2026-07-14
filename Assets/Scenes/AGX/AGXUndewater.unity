@@ -980,6 +980,8 @@ GameObject:
   m_Component:
   - component: {fileID: 104103662}
   - component: {fileID: 104103661}
+  - component: {fileID: 104103664}
+  - component: {fileID: 104103663}
   m_Layer: 0
   m_Name: Spawner
   m_TagString: Untagged
@@ -1019,6 +1021,43 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1557432791}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &104103663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104103660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 446650d34e103b847aac57c22736fb1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrawlLineSpawner
+  trawlLinePrefab: {fileID: 6811724478845216287, guid: 725e8885d2246b14d9c62599347ee64e, type: 3}
+  parent: {fileID: 1733506230}
+  numToSpawnPerChunk: 5
+  TL: {fileID: 104103664}
+  spawn: 0
+  meshChunksParent: {fileID: 112665079}
+--- !u!114 &104103664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 104103660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc1da254c9bff594286fda746af12fb2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TrawlLine
+  m_serializationVersion: 1
+  lobsterTrap: {fileID: 1356546218376360735, guid: 2aa2e8ea51b44a74b856a6e5381ff052, type: 3}
+  buoy: {fileID: 5500421225580346696, guid: a3887040c24be094fa18b93f8a40f63c, type: 3}
+  wireMat: {fileID: -876546973899608171, guid: 0ce2014a67ddf2143bf8022ca7f3767c, type: 3}
+  wireShapeMat: {fileID: 11400000, guid: 4d6c02901dc362c41b86fa34c055c17d, type: 2}
+  spacingDelta: 100
+  depth: 50
 --- !u!1 &112665079
 GameObject:
   m_ObjectHideFlags: 0
@@ -6875,6 +6914,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c3acf9865b355d4a99c60390cbf3292, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BoulderSpawner
+  m_serializationVersion: 1
   boulderPrefab: {fileID: 7699822575351861095, guid: 2472d32cc0a696a42bd7916c7a32a5fc, type: 3}
   boulderParent: {fileID: 2123906862}
   meshParent: {fileID: 112665079}

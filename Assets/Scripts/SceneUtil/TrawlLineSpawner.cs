@@ -1,80 +1,76 @@
-using AGXUnity;
-using AGXUnity.Rendering;
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 
-public class TrawlLineSpawner : ScriptComponent{
-    [SerializeField] GameObject lobsterTrap;
-    [SerializeField] GameObject buoy;
+public class TrawlLineSpawner : MonoBehaviour{
+    [SerializeField] GameObject trawlLinePrefab;
+    [SerializeField] GameObject parent;
 
-    float buoyHeight;
+    [SerializeField] int numToSpawnPerChunk = 5;
+    [SerializeField] TrawlLine TL;
+    
+    [SerializeField] bool spawn;
 
-    float trapWidth;
-    float trapHeight;
-
-    [SerializeField] Material wireMat;
-    [SerializeField] ShapeMaterial wireShapeMat;
-
-    int minOnTrawl = 5;
-    int maxOnTrawl = 15;
-
-    [SerializeField] float spacingDelta;
-
-    [SerializeField] float depth = 50;
-
-    protected override bool Initialize(){
-        getFishingProperties();
-        routeWire();
-        return base.Initialize();
-        
-    }
-
-
-    private void getFishingProperties()
+    [SerializeField] GameObject meshChunksParent;
+    List<GameObject> lines;
+    
+    void Start()
     {
-        buoyHeight = buoy.GetComponentInChildren<AGXUnity.Collide.Capsule>().Height;
-
-        AGXUnity.Collide.Box box = lobsterTrap.GetComponentInChildren<AGXUnity.Collide.Box>();
-
-        trapWidth = box.HalfExtents.x * 2;
-        trapHeight = box.HalfExtents.y * 2;
-
-        
+        lines = new List<GameObject>(numToSpawnPerChunk);
     }
 
-    public void routeWire(){
-        Wire wire = gameObject.AddComponent<Wire>();
-        WireRenderer renderer = gameObject.AddComponent<WireRenderer>();
+    void Update(){
+        if(!spawn) return;
 
-        renderer.Material = wireMat;
-        wire.Material = wireShapeMat;
-        wire.Diameter = .1f;
-        WireRouteNode buoyRouteNode = WireRouteNode.Create(Wire.NodeType.BodyFixedNode,buoy,Vector3.up * -buoyHeight, Quaternion.identity);
-        wire.Route.Add(buoyRouteNode);
+        clearLines();
+        spawnLines();
+        spawn = false;
+    }
 
+    
+    // TODO, only spawn lines IF the entire trawl wont go over the edge.
+    public void spawnLines(){
 
-        int randT = Random.Range(0,1);
-        int numTraps = Mathf.RoundToInt(Mathf.Lerp(minOnTrawl,maxOnTrawl, randT));
+        List<Bounds> meshBounds = ChunksToBounds.GetBoundsFromChunks(meshChunksParent);
 
-        for(int i = 0; i < numTraps; i++){
-            float deltaOffset = spacingDelta * i;
+        lines.Capacity = meshBounds.Count * numToSpawnPerChunk;
+
+        foreach(Bounds meshBound in meshBounds){
             
-            Vector3 offset = new Vector3(deltaOffset,-depth - trapHeight,0);
-            Vector3 position = offset + buoy.transform.position;
+            float xMin = meshBound.min.x;
+            float xMax = meshBound.max.x;
 
-            GameObject trap = Instantiate(lobsterTrap,position,Quaternion.identity,gameObject.transform);
+            float zMin = meshBound.min.z;
+            float zMax = meshBound.max.z;
 
-            Wire.NodeType nodeType = i == numTraps - 1 ? Wire.NodeType.BodyFixedNode : Wire.NodeType.EyeNode;
+            for(int i = 0; i < numToSpawnPerChunk; i++){
 
-            Vector3 ropeBoxDelta = new Vector3(0, trapHeight, 0);
+                float tX = Random.Range(0.0f,1.0f);
+                float tZ = Random.Range(0.0f,1.0f);
 
-            WireRouteNode trapRouteNode = WireRouteNode.Create(nodeType,trap, ropeBoxDelta, Quaternion.identity);
-            wire.Route.Add(trapRouteNode);
+                float x = Mathf.Lerp(xMin,xMax,tX);
+                float z = Mathf.Lerp(zMin,zMax,tZ);
 
+                Vector2 position = new Vector2(x,z);
+
+                GameObject line = TL.spawnTrawl(position, parent);
+
+                lines.Add(line);
+            }
         }
-        GetSimulation().add(wire.Native);
-
-        Debug.Log(wire.Route.NumNodes);
     }
 
+
+
+    void clearLines(){
+
+        if(lines.Count == 0) return;
+        
+        for(int i = lines.Count - 1; i >= 0; i--){
+            GameObject currLine = lines[i];
+
+            Destroy(currLine);
+
+            lines.RemoveAt(i);
+        }
+    }
 }
