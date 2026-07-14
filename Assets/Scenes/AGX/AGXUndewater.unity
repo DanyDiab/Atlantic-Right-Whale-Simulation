@@ -8085,7 +8085,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2949686268973457154, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 6500
+      value: 500
       objectReference: {fileID: 0}
     - target: {fileID: 2949686268973457154, guid: 3bf820b5dafa87142b89077383b0492c, type: 3}
       propertyPath: m_LocalRotation.w
@@ -11576,15 +11576,15 @@ MonoBehaviour:
       m_userValue: 1
     m_inertiaDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 190219.33, y: 194869.45, z: 22806.703}
+      m_defaultValue: {x: 190214.47, y: 194864.6, z: 22806.703}
       m_userValue: {x: 1, y: 1, z: 1}
     m_inertiaOffDiagonal:
       m_defaultToggle: 1
-      m_defaultValue: {x: 127.03366, y: 406.69537, z: 5944.5913}
+      m_defaultValue: {x: 127.03366, y: 406.68643, z: 5944.473}
       m_userValue: {x: 1, y: 1, z: 1}
     m_centerOfMassOffset:
       m_defaultToggle: 0
-      m_defaultValue: {x: 0.05135204, y: 0.32634905, z: 3.060425}
+      m_defaultValue: {x: 0.05135204, y: 0.32634905, z: 3.06033}
       m_userValue: {x: 0, y: -0.5, z: 2}
     m_massCoefficients: {x: 0, y: 0, z: 0}
     m_inertiaCoefficients: {x: 0, y: 0, z: 0}
